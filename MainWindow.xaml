@@ -173,8 +173,11 @@
                                             <!-- <Image HorizontalAlignment="Stretch" Source="{Binding CharaImage.Source, TargetNullValue={x:Null}}" Height="{Binding CharaImage.Height}" Width="{Binding CharaImage.Width}" /> -->
                                         </ContentControl>
                                         <TextBox Text="{Binding CharaImageTitle}" />
+                                        <!-- 大きさを出したいときは以下を使う
                                         <TextBlock Text="{Binding CharaImage.Height}" />
                                         <TextBlock Text="{Binding CharaImage.Width}" />
+                                        -->
+                                        
                                     </StackPanel>
                                 </Grid>
                             </DataTemplate>

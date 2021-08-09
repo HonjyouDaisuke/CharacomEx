@@ -307,6 +307,11 @@ namespace CharacomEx
             bmp3.Render(dv);
             Rect rect = new Rect(min, max);
 
+            if (rect.Width < 5 || rect.Height < 5)
+            {
+                ((InkCanvas)sender).Strokes.Clear();
+                return;
+            }
             var croppedBitmap = new CroppedBitmap(image, new Int32Rect((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height));
             var croppedBitmap2 = new CroppedBitmap(bmp2, new Int32Rect((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height));
             var croppedBitmap3 = new CroppedBitmap(bmp3, new Int32Rect((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height));

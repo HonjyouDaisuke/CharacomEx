@@ -742,7 +742,9 @@ namespace CharacomEx
                 System.Diagnostics.Debug.WriteLine("キャンバスが真っ白のため何もしていません。");
                 return(src);
             }
-            src = TwoColorProc(src);
+
+            BitmapSource tmp;
+            tmp = TwoColorProc(src);
 
             
             //大きさの正規化プロセス開始
@@ -750,6 +752,8 @@ namespace CharacomEx
             DoublePoint Gravi;
             //BitmapをPbrga32に変換する
             FormatConvertedBitmap bitmap = new FormatConvertedBitmap(src, PixelFormats.Pbgra32, null, 0);
+            //BitmapをPbrga32に変換する
+            FormatConvertedBitmap tmp_bitmap = new FormatConvertedBitmap(tmp, PixelFormats.Pbgra32, null, 0);
 
             //画像サイズの配列を作る
             int width = bitmap.PixelWidth;
@@ -758,23 +762,22 @@ namespace CharacomEx
             byte r, g, b;
             Color c;
             byte[] orgPixels = new byte[width * height * 4];
-            //byte[] outPixels = new byte[width * height * 4];
+            byte[] tmpPixels = new byte[width * height * 4];
             byte[] outPixels = new byte[321 * 321 * 4];
             int width2, height2;
             //BitmapSourceから配列へコピー
             int stride = (width * bitmap.Format.BitsPerPixel + 7) / 8;
             int stride2 = (320 * bitmap.Format.BitsPerPixel + 7) / 8;
             bitmap.CopyPixels(orgPixels, stride, 0);
-            int maxX, maxY, minX, minY;
-
+            
             width2 = 320;
             height2 = 320;
 
             cXm = ((double)width / 2.0);
             cYm = ((double)height / 2.0);
 
-            Gravi = GetGravityPointDouble(src);
-            r_ave = TowMorment(src, Gravi);
+            Gravi = GetGravityPointDouble(tmp);
+            r_ave = TowMorment(tmp, Gravi);
 
             if (Double.IsNaN(r_ave))
             {
@@ -792,17 +795,17 @@ namespace CharacomEx
                     y = (int)(RRave * ((double)j - cYm) + Gravi.Y);
                     if ((x >= 0) && (x < width) && (y >= 0) && (y < height))
                     {
-                        r = orgPixels[(y * width + x) * 4 + 0];
-                        g = orgPixels[(y * width + x) * 4 + 1];
-                        b = orgPixels[(y * width + x) * 4 + 2];
+                        r = tmpPixels[(y * width + x) * 4 + 0];
+                        g = tmpPixels[(y * width + x) * 4 + 1];
+                        b = tmpPixels[(y * width + x) * 4 + 2];
                         c = Color.FromArgb(255, r, g, b);
 
                         if (ColorCompare(c, Colors.Black) == true)
                         {
-                            outPixels[(j * width2 + i) * 4 + 0] = 0;
-                            outPixels[(j * width2 + i) * 4 + 1] = 0;
-                            outPixels[(j * width2 + i) * 4 + 2] = 0;
-                            outPixels[(j * width2 + i) * 4 + 3] = 255;
+                            outPixels[(j * width2 + i) * 4 + 0] = orgPixels[(y * width + x) * 4 + 0];
+                            outPixels[(j * width2 + i) * 4 + 1] = orgPixels[(y * width + x) * 4 + 1];
+                            outPixels[(j * width2 + i) * 4 + 2] = orgPixels[(y * width + x) * 4 + 2];
+                            outPixels[(j * width2 + i) * 4 + 3] = orgPixels[(y * width + x) * 4 + 3];
                             //System.Diagnostics.Debug.WriteLine($"outpixcel {i},{j} =>Black");
                             //bmp.SetPixel(i, j, Color.Black);
                         }
