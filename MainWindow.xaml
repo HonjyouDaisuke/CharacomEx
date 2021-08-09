@@ -145,6 +145,8 @@
             <MenuItem Header="設定">
                 <MenuItem Header="ダークモード" Click="MenuItemDarkMode_Click" />
                 <MenuItem Header="ライトモード" Click="MenuItemLightMode_Click" />
+                <MenuItem x:Name="MenuNomalizeCheck" Header="大きさ変換" IsCheckable="True" IsChecked="True" />
+                <MenuItem x:Name="MenuCenterCheck" Header="重心を中心に" IsCheckable="True" IsChecked="True" />
             </MenuItem>
         </Menu>
 

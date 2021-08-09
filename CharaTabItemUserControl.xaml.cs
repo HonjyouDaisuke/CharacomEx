@@ -267,11 +267,13 @@ namespace CharacomEx
 
         public void ImageProcessExe()
         {
+            var Oya = (MainWindow)Application.Current.MainWindow;
+
             BitmapSource proc_bmp;
             imageEffect.GetGravityPointDouble((BitmapSource)charaSrcImage);
             proc_bmp = (BitmapSource)charaSrcImage;
-            proc_bmp = imageEffect.Normalize(proc_bmp, 38.0);
-            proc_bmp = imageEffect.MoveCenter_fromGravity(proc_bmp);
+            if(Oya.MenuNomalizeCheck.IsChecked == true) proc_bmp = imageEffect.Normalize(proc_bmp, 38.0);
+            if(Oya.MenuCenterCheck.IsChecked == true) proc_bmp = imageEffect.MoveCenter_fromGravity(proc_bmp);
             imgCharaPrc.Source = proc_bmp;
         }
     }
