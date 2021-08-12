@@ -279,11 +279,11 @@ namespace CharacomEx
         /// </summary>
         /// <param name="src"></param>
         /// <returns></returns>
-        public BitmapSource BitmapWitening(BitmapSource src)
+        public BitmapSource BitmapWhitening(BitmapSource src)
         {
             //BitmapをPbrga32に変換する
             FormatConvertedBitmap bitmap = new FormatConvertedBitmap(src, PixelFormats.Pbgra32, null, 0);
-
+            
             //画像サイズの配列を作る
             int width = bitmap.PixelWidth;
             int height = bitmap.PixelHeight;
@@ -517,14 +517,14 @@ namespace CharacomEx
                     g = orgPixels[(j * width + i) * 4 + 1];
                     b = orgPixels[(j * width + i) * 4 + 2];
                     c = Color.FromRgb(r, g, b);
-                    if (ColorCompare(c, Colors.White) == false)
+                    if (ColorCompare(c, Colors.White) == false && orgPixels[(j * width + i) * 4 + 3] != 0) 
                     {
                         sum_a += i;
                         sum_b++;
                     }
                 }
             }
-            GravityP.X = (sum_b != 0) ? (double)((double)sum_a / (double)sum_b) : 0.0;
+            GravityP.X = (sum_b != 0) ? sum_a / sum_b : 0.0;
 
             // y軸方向の重心
             sum_a = 0; sum_b = 0;
@@ -536,15 +536,15 @@ namespace CharacomEx
                     g = orgPixels[(j * width + i) * 4 + 1];
                     b = orgPixels[(j * width + i) * 4 + 2];
                     c = Color.FromRgb(r, g, b);
-                    if (ColorCompare(c, Colors.White) == false)
+                    if (ColorCompare(c, Colors.White) == false && orgPixels[(j * width + i) * 4 + 3] != 0)
                     {
                         sum_a += j;
                         sum_b++;
                     }
                 }
             }
-            GravityP.Y = (sum_b != 0) ? (double)((double)sum_a / (double)sum_b) : 0.0;
-            System.Diagnostics.Debug.WriteLine($"重心座標 = {GravityP.X} , {GravityP.Y}");
+            GravityP.Y = (sum_b != 0) ? sum_a / sum_b : 0.0;
+            System.Diagnostics.Debug.WriteLine($"キャンバスサイズ = {src.Width} , {src.Height} 重心座標 = {GravityP.X} , {GravityP.Y}");
             return (GravityP);
         }
 
@@ -567,6 +567,7 @@ namespace CharacomEx
             int i, j, k;
             byte[] srcPixels = new byte[width * height * 4];
             byte[] outPixels = new byte[width * height * 4];
+            byte a;
             //BitmapSourceから配列へコピー
             int stride = (width * bitmapSrc.Format.BitsPerPixel + 7) / 8;
             bitmapSrc.CopyPixels(srcPixels, stride, 0);
@@ -590,10 +591,21 @@ namespace CharacomEx
                 {
                     if((j + y) < height && (j + y) >= 0 && (i + x) < width && (i + x) >= 0)
                     {
-                        outPixels[((j + y) * width + i + x) * 4 + 0] = srcPixels[(j * width + i) * 4 + 0];
-                        outPixels[((j + y) * width + i + x) * 4 + 1] = srcPixels[(j * width + i) * 4 + 1];
-                        outPixels[((j + y) * width + i + x) * 4 + 2] = srcPixels[(j * width + i) * 4 + 2];
-                        outPixels[((j + y) * width + i + x) * 4 + 3] = srcPixels[(j * width + i) * 4 + 3];
+                        a = srcPixels[(j * width + i) * 4 + 3];
+                        if(a == 0) {
+                            outPixels[((j + y) * width + i + x) * 4 + 0] = 255;
+                            outPixels[((j + y) * width + i + x) * 4 + 1] = 255;
+                            outPixels[((j + y) * width + i + x) * 4 + 2] = 255;
+                            outPixels[((j + y) * width + i + x) * 4 + 3] = 255;
+                        }
+                        else
+                        {
+                            outPixels[((j + y) * width + i + x) * 4 + 0] = srcPixels[(j * width + i) * 4 + 0];
+                            outPixels[((j + y) * width + i + x) * 4 + 1] = srcPixels[(j * width + i) * 4 + 1];
+                            outPixels[((j + y) * width + i + x) * 4 + 2] = srcPixels[(j * width + i) * 4 + 2];
+                            outPixels[((j + y) * width + i + x) * 4 + 3] = srcPixels[(j * width + i) * 4 + 3];
+                        }
+                        
                     }
                 }
             }
@@ -619,6 +631,7 @@ namespace CharacomEx
             x = (int)((src.PixelWidth / 2.0) - gp.X);
             y = (int)((src.PixelHeight / 2.0) - gp.Y);
 
+            System.Diagnostics.Debug.WriteLine($"MoveGravity  size={src.PixelWidth},{src.PixelHeight}, gravity={gp.X},{gp.Y}, start = {x},{y}");
             src = PutBitmap_ToPoint(src, x, y);
             
             return (src);
@@ -677,7 +690,7 @@ namespace CharacomEx
         /// <param name="bmp">ソース画像</param>
         /// <param name="GravPoint">重視座標</param>
         /// <returns></returns>
-        private double TowMorment(BitmapSource bmp, DoublePoint GravPoint)
+        private double TwoMorment(BitmapSource bmp, DoublePoint GravPoint)
         {
             int i, j, sum;
             double r_ave;
@@ -688,7 +701,6 @@ namespace CharacomEx
             //画像サイズの配列を作る
             int width = bitmap.PixelWidth;
             int height = bitmap.PixelHeight;
-            int k;
             byte r, g, b;
             Color c;
             byte[] orgPixels = new byte[width * height * 4];
@@ -711,14 +723,14 @@ namespace CharacomEx
                     if (ColorCompare(c, Colors.White) != true)
                     {
                         sum++;
-                        sX = (double)i - GravPoint.X;
-                        sY = (double)j - GravPoint.Y;
-                        r_ave = r_ave + Math.Sqrt(Math.Pow(sX, 2) + Math.Pow(sY, 2));
+                        sX = i - GravPoint.X;
+                        sY = j - GravPoint.Y;
+                        r_ave += Math.Sqrt(Math.Pow(sX, 2) + Math.Pow(sY, 2));
                     }
                 }
             }
 
-            r_ave = r_ave / (double)sum;
+            r_ave /= sum;
             return (r_ave);
         }
         #endregion
@@ -734,7 +746,6 @@ namespace CharacomEx
         public BitmapSource Normalize(BitmapSource src, double R)
         {
             //double R = ((double)input.Height / 4.0) * 0.95;
-            
             System.Diagnostics.Debug.WriteLine("Normalized");
             //キャンバスが真っ白だったらすぐ終了
             if (WhiteCanvasCheck(src) == false)
@@ -743,18 +754,18 @@ namespace CharacomEx
                 return(src);
             }
 
+            /**
             BitmapSource tmp;
             tmp = TwoColorProc(src);
-
+            **/
             
             //大きさの正規化プロセス開始
             double r_ave, cXm, cYm, RRave;
             DoublePoint Gravi;
             //BitmapをPbrga32に変換する
             FormatConvertedBitmap bitmap = new FormatConvertedBitmap(src, PixelFormats.Pbgra32, null, 0);
-            //BitmapをPbrga32に変換する
-            FormatConvertedBitmap tmp_bitmap = new FormatConvertedBitmap(tmp, PixelFormats.Pbgra32, null, 0);
-
+            
+            
             //画像サイズの配列を作る
             int width = bitmap.PixelWidth;
             int height = bitmap.PixelHeight;
@@ -762,22 +773,36 @@ namespace CharacomEx
             byte r, g, b;
             Color c;
             byte[] orgPixels = new byte[width * height * 4];
-            byte[] tmpPixels = new byte[width * height * 4];
+            byte[] tmpPixels = new byte[321 * 321 * 4];
+            byte[] srctmpPixels = new byte[321 * 321 * 4];
             byte[] outPixels = new byte[321 * 321 * 4];
             int width2, height2;
             //BitmapSourceから配列へコピー
             int stride = (width * bitmap.Format.BitsPerPixel + 7) / 8;
             int stride2 = (320 * bitmap.Format.BitsPerPixel + 7) / 8;
             bitmap.CopyPixels(orgPixels, stride, 0);
+
+            //実験
+            bitmap.CopyPixels(tmpPixels, stride2, 0);
+            bitmap.CopyPixels(srctmpPixels, stride2, 0);
+            BitmapSource ttt = BitmapSource.Create(320, 320, 96, 96, PixelFormats.Pbgra32, null, tmpPixels, stride2);
+            BitmapSource src_ttt = BitmapSource.Create(320, 320, 96, 96, PixelFormats.Pbgra32, null, srctmpPixels, stride2);
+            System.Diagnostics.Debug.WriteLine($"WhiteCanvas = {ttt.Width} * {ttt.Height} : r={tmpPixels[256800 + 0]} g={tmpPixels[256800 + 1]} b={tmpPixels[256800 + 2]} a={tmpPixels[256800 + 3 ]}");
+            ttt = MoveCenter_fromGravity(ttt);
+            ttt = TwoColorProc(ttt);
+            src_ttt = MoveCenter_fromGravity(src_ttt);
             
             width2 = 320;
             height2 = 320;
 
-            cXm = ((double)width / 2.0);
-            cYm = ((double)height / 2.0);
+            cXm = ((double)width2 / 2.0);
+            cYm = ((double)height2 / 2.0);
 
-            Gravi = GetGravityPointDouble(tmp);
-            r_ave = TowMorment(tmp, Gravi);
+            System.Diagnostics.Debug.WriteLine("---------");
+            Gravi = GetGravityPointDouble(ttt);
+            System.Diagnostics.Debug.WriteLine($"     tttキャンバスサイズ = {ttt.Width} , {ttt.Height} 重心座標 = {Gravi.X} , {Gravi.Y}");
+
+            r_ave = TwoMorment(ttt, Gravi);
 
             if (Double.IsNaN(r_ave))
             {
@@ -786,26 +811,72 @@ namespace CharacomEx
             RRave = r_ave / R;
 
 
-            
+            ttt.CopyPixels(tmpPixels, stride2, 0);
+            src_ttt.CopyPixels(srctmpPixels, stride2, 0);
             for (j = 0; j < height2; j++)
             {
                 for (i = 0; i < width2; i++)
                 {
-                    x = (int)(RRave * ((double)i - cXm) + Gravi.X);
-                    y = (int)(RRave * ((double)j - cYm) + Gravi.Y);
-                    if ((x >= 0) && (x < width) && (y >= 0) && (y < height))
+                    x = (int)(RRave * (i - cXm) + Gravi.X);
+                    y = (int)(RRave * (j - cYm) + Gravi.Y);
+                    
+                    if ((x >= 0) && (x < width2) && (y >= 0) && (y < height2))
                     {
-                        r = tmpPixels[(y * width + x) * 4 + 0];
-                        g = tmpPixels[(y * width + x) * 4 + 1];
-                        b = tmpPixels[(y * width + x) * 4 + 2];
-                        c = Color.FromArgb(255, r, g, b);
+                        if(tmpPixels[(y * width2 + x) * 4 + 3] == 0)
+                        {
+                            outPixels[(j * width2 + i) * 4 + 0] = 255;
+                            outPixels[(j * width2 + i) * 4 + 1] = 255;
+                            outPixels[(j * width2 + i) * 4 + 2] = 255;
+                            outPixels[(j * width2 + i) * 4 + 3] = 255;
+                        }
+                        else
+                        {
+                            outPixels[(j * width2 + i) * 4 + 0] = srctmpPixels[(y * width2 + x) * 4 + 0];
+                            outPixels[(j * width2 + i) * 4 + 1] = srctmpPixels[(y * width2 + x) * 4 + 1];
+                            outPixels[(j * width2 + i) * 4 + 2] = srctmpPixels[(y * width2 + x) * 4 + 2];
+                            outPixels[(j * width2 + i) * 4 + 3] = srctmpPixels[(y * width2 + x) * 4 + 3];
 
+                        }
+
+
+                        /**
+                        r = tmpPixels[(y * width2 + x) * 4 + 0];
+                        g = tmpPixels[(y * width2 + x) * 4 + 1];
+                        b = tmpPixels[(y * width2 + x) * 4 + 2];
+                        c = Color.FromArgb(255, r, g, b);
+                        if(y < 10)
+                        {
+                            outPixels[(j * width2 + i) * 4 + 0] = 255;
+                            outPixels[(j * width2 + i) * 4 + 1] = 0;
+                            outPixels[(j * width2 + i) * 4 + 2] = 0;
+                            outPixels[(j * width2 + i) * 4 + 3] = 255;
+
+                        }else if(y < 20){
+                            outPixels[(j * width2 + i) * 4 + 0] = 0;
+                            outPixels[(j * width2 + i) * 4 + 1] = 255;
+                            outPixels[(j * width2 + i) * 4 + 2] = 0;
+                            outPixels[(j * width2 + i) * 4 + 3] = 255;
+                        }else if (y < 30)
+                        {
+                            outPixels[(j * width2 + i) * 4 + 0] = 0;
+                            outPixels[(j * width2 + i) * 4 + 1] = 0;
+                            outPixels[(j * width2 + i) * 4 + 2] = 255;
+                            outPixels[(j * width2 + i) * 4 + 3] = 255;
+                        }
+                        else
+                        {
+                            outPixels[(j * width2 + i) * 4 + 0] = 255;
+                            outPixels[(j * width2 + i) * 4 + 1] = 255;
+                            outPixels[(j * width2 + i) * 4 + 2] = 0;
+                            outPixels[(j * width2 + i) * 4 + 3] = 255;
+                        }
+                        
                         if (ColorCompare(c, Colors.Black) == true)
                         {
-                            outPixels[(j * width2 + i) * 4 + 0] = orgPixels[(y * width + x) * 4 + 0];
-                            outPixels[(j * width2 + i) * 4 + 1] = orgPixels[(y * width + x) * 4 + 1];
-                            outPixels[(j * width2 + i) * 4 + 2] = orgPixels[(y * width + x) * 4 + 2];
-                            outPixels[(j * width2 + i) * 4 + 3] = orgPixels[(y * width + x) * 4 + 3];
+                            outPixels[(j * width2 + i) * 4 + 0] = tmpPixels[(y * width2 + x) * 4 + 0];
+                            outPixels[(j * width2 + i) * 4 + 1] = tmpPixels[(y * width2 + x) * 4 + 1];
+                            outPixels[(j * width2 + i) * 4 + 2] = tmpPixels[(y * width2 + x) * 4 + 2];
+                            outPixels[(j * width2 + i) * 4 + 3] = tmpPixels[(y * width2 + x) * 4 + 3];
                             //System.Diagnostics.Debug.WriteLine($"outpixcel {i},{j} =>Black");
                             //bmp.SetPixel(i, j, Color.Black);
                         }
@@ -816,6 +887,7 @@ namespace CharacomEx
                             outPixels[(j * width2 + i) * 4 + 2] = 255;
                             outPixels[(j * width2 + i) * 4 + 3] = 255;
                         }
+                        **/
                     }
                     else
                     {
@@ -829,6 +901,7 @@ namespace CharacomEx
 
             //BitmapSourceに再変換
             BitmapSource outBmp = BitmapSource.Create(width2, height2, 96, 96, PixelFormats.Pbgra32, null, outPixels, stride2);
+            //BitmapSource outBmp = BitmapSource.Create(width2, height2, 96, 96, PixelFormats.Pbgra32, null, tmpPixels, stride2);
             return (outBmp);
         }
         #endregion

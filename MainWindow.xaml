@@ -18,7 +18,6 @@
         <Controls:WindowCommands>
             <Button ToolTip="Project" Click="ShowFlyout">
                 <icon:PackIconMaterial Kind="Menu" />
-
             </Button>
         </Controls:WindowCommands>
     </Controls:MetroWindow.LeftWindowCommands>
@@ -145,6 +144,9 @@
             <MenuItem Header="設定">
                 <MenuItem Header="ダークモード" Click="MenuItemDarkMode_Click" />
                 <MenuItem Header="ライトモード" Click="MenuItemLightMode_Click" />
+                <Separator/>
+                <MenuItem x:Name="MenuGridLineCheck" Header="グリッド線を表示" IsCheckable="True" IsChecked="True" Checked="GridLineCheck_Changed" Unchecked="GridLineCheck_Changed"/>
+                <Separator/>
                 <MenuItem x:Name="MenuNomalizeCheck" Header="大きさ変換" IsCheckable="True" IsChecked="True" />
                 <MenuItem x:Name="MenuCenterCheck" Header="重心を中心に" IsCheckable="True" IsChecked="True" />
             </MenuItem>

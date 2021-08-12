@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:wfc="clr-namespace:System.Windows.Forms.DataVisualization.Charting;assembly=System.Windows.Forms.DataVisualization"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:local="clr-namespace:CharacomEx"
@@ -17,8 +18,8 @@
         <!--行の定義-->
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
-            <RowDefinition Height=".7*"/>
-            <RowDefinition Height=".3*"/>
+            <RowDefinition Height=".6*"/>
+            <RowDefinition Height=".4*"/>
         </Grid.RowDefinitions>
         <!--ツールバー-->
         <ToolBar Height="70" VerticalAlignment="Top" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
@@ -69,9 +70,9 @@
             <Button x:Name="TrushButton" Click="TrushButton_Click">
                 <icon:PackIconModern Kind="Delete" Height="32" Width="32" />
             </Button>
-            <!--test-->
-            <Button x:Name="test" Content="Test" Click="testButton_Click" />
-
+            
+            <!-- テスト -->
+            <Button Content="Test" Click="InitializeChart_Click" />
         </ToolBar>
         <Border Grid.Column="0" Grid.Row="1" Margin="10" BorderBrush="{DynamicResource MahApps.Brushes.WindowTitle}" BorderThickness="1">
             
@@ -91,11 +92,12 @@
                                Height="{Binding RelativeSource={RelativeSource Self}, Path=Height}"
                                PreviewMouseWheel="charaInkCanvas_PreviewMouseWheel"
                                StrokeCollected="charaInkCanvas_StrokeCollected">
+                        <!--
                         <Image x:Name="imgCharaSrc" 
                                Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelWidth}" 
                                Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelHeight}"
                                SizeChanged="imgCharaSrc_SizeChanged"/>
-                        
+                        -->
                     </InkCanvas>
                     <!--
                         <InkCanvas x:Name="charaInkCanvas" 
@@ -123,12 +125,34 @@
                               HorizontalScrollBarVisibility="Visible"
                               VerticalScrollBarVisibility="Visible"
                               Background="DarkGray">
-                    <Image Grid.Row="1" 
-                           x:Name="imgCharaPrc"   
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center"
-                           Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelWidth}" 
-                           Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelHeight}"/>
+                    <Canvas x:Name="charaProcCanvas">
+                        <!--
+                        <Image Grid.Row="1" 
+                               x:Name="imgCharaPrc"   
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelWidth}" 
+                               Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelHeight}"/>
+                        -->
+                    </Canvas>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+        <Border Grid.Column="0" Grid.Row="2" Margin="10" BorderBrush="{DynamicResource MahApps.Brushes.WindowTitle}" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="26" />
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Foreground="{DynamicResource MahApps.Brushes.Badged.Foreground}" Background="{DynamicResource MahApps.Brushes.WindowTitle}">総合判定</Label>
+                <ScrollViewer x:Name="ChartScrollViewer" 
+                              Grid.Row="1"
+                              HorizontalScrollBarVisibility="Visible"
+                              VerticalScrollBarVisibility="Visible"
+                              Background="DarkGray">
+                    <WindowsFormsHost HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <wfc:Chart x:Name="MyChart" />
+                    </WindowsFormsHost>
                 </ScrollViewer>
             </Grid>
         </Border>

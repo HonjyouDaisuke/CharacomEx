@@ -596,8 +596,7 @@ namespace CharacomEx
 
             int selectwdIndex = ((TabControl)sender).SelectedIndex;
             string tabName = ((TabItem)mainTab.SelectedItem).Header.ToString();
-            string ret;
-
+            
             System.Diagnostics.Debug.WriteLine("tabName = " + tabName);
 
             MainOrCharaClass mc = new MainOrCharaClass();
@@ -726,7 +725,7 @@ namespace CharacomEx
         /// </summary>
         /// <param name="bs"></param>
         /// <returns></returns>
-        public static byte[] ToBinary(BitmapSource img)
+        public byte[] ToBinary(BitmapSource img)
         {
             if (img == null) return null;
 
@@ -757,7 +756,7 @@ namespace CharacomEx
         /// </summary>
         /// <param name="byteArray"></param>
         /// <returns></returns>
-        public static BitmapSource ToBitmapSource(byte[] byteArray)
+        public BitmapSource ToBitmapSource(byte[] byteArray)
         {
             using (var ms = new MemoryStream(byteArray))
             {
@@ -1022,6 +1021,26 @@ namespace CharacomEx
             }
         }
 
+        /// <summary>
+        /// 2021.08.12 D.Honjyou
+        /// グリッド線を表示するかどうかが変更された時のイベント
+        /// ChildTabをすべてチェックしてグリッド線を書き直し
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void GridLineCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            if (mainTab == null) return;
+            MainOrCharaClass mc = new MainOrCharaClass();
+            foreach(TabItem t in mainTab.Items)
+            {
+                mc = checkTabName(t.Header.ToString());
+                if(mc.MainOrChara == 2)
+                {
+                    ((CharaTabItemUserControl)t.Content).DrawWaku(sender, e);
+                }
+            }
+        }
     }
 
 

@@ -84,6 +84,9 @@ namespace CharacomEx
 
         public bool CheckFlag { get => _checkFlag; set => _checkFlag = value; }
         public string Name { get => _name; set => _name = value; }
+        /// <summary>
+        /// MainOrChara 1->メイン画像　2->個別文字画像
+        /// </summary>
         public int MainOrChara { get => _mainOrChara; set => _mainOrChara = value; }
         public int MainIndex { get => _mainIndex; set => _mainIndex = value; }
         public int CharaIndex { get => _charaIndex; set => _charaIndex = value; }
