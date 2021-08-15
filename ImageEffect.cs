@@ -287,7 +287,7 @@ namespace CharacomEx
             //画像サイズの配列を作る
             int width = bitmap.PixelWidth;
             int height = bitmap.PixelHeight;
-            int i, j, k;
+            int i, j;
             byte[] orgPixels = new byte[width * height * 4];
 
             //BitmapSourceから配列へコピー
@@ -495,14 +495,14 @@ namespace CharacomEx
             //画像サイズの配列を作る
             int width = bitmap.PixelWidth;
             int height = bitmap.PixelHeight;
-            int all_sum = 0;
+            //int all_sum = 0;
             byte[] orgPixels = new byte[width * height * 4];
 
             //BitmapSourceから配列へコピー
             int stride = (width * bitmap.Format.BitsPerPixel + 7) / 8;
             bitmap.CopyPixels(orgPixels, stride, 0);
 
-            int i, j, a, sum_a, sum_b;
+            int i, j, sum_a, sum_b;
             DoublePoint GravityP = new DoublePoint();
             Color c;
             byte r, g, b;
@@ -653,7 +653,7 @@ namespace CharacomEx
             //画像サイズの配列を作る
             int width = bitmap.PixelWidth;
             int height = bitmap.PixelHeight;
-            int i, j, k;
+            int i, j;
             byte r, g, b;
             Color c;
             byte[] orgPixels = new byte[width * height * 4];
@@ -735,6 +735,116 @@ namespace CharacomEx
         }
         #endregion
 
+        #region 画素割合の算出
+        /// <summary>
+        /// 2021.08.14 D.Honjyou
+        /// 画素割合の抽出
+        /// </summary>
+        /// <param name="bmp">ソース画像</param>
+        /// <returns></returns>
+        public double GetPixelRate(BitmapSource bmp)
+        {
+            int i, j, sum;
+            double r_ave;
+            int x1, x2, y1, y2;
+            //BitmapをPbrga32に変換する
+            FormatConvertedBitmap bitmap = new FormatConvertedBitmap(bmp, PixelFormats.Pbgra32, null, 0);
+
+            //画像サイズの配列を作る
+            int width = bitmap.PixelWidth;
+            int height = bitmap.PixelHeight;
+            byte r, g, b, a;
+            Color c;
+            byte[] orgPixels = new byte[width * height * 4];
+            //BitmapSourceから配列へコピー
+            int stride = (width * bitmap.Format.BitsPerPixel + 7) / 8;
+            bitmap.CopyPixels(orgPixels, stride, 0);
+
+            sum = 0;
+            x1 = 9999;
+            x2 = 0;
+            y1 = 9999;
+            y2 = 0;
+            for (j = 0; j < height; j++)
+            {
+                for (i = 0; i < width; i++)
+                {
+                    r = orgPixels[(j * width + i) * 4 + 0];
+                    g = orgPixels[(j * width + i) * 4 + 1];
+                    b = orgPixels[(j * width + i) * 4 + 2];
+                    a = orgPixels[(j * width + i) * 4 + 3];
+                    c = Color.FromRgb(r, g, b);
+
+                    if (ColorCompare(c, Colors.White) != true && a != 0)
+                    {
+                        sum++;
+                        if (x1 > i) x1 = i;
+                        if (x2 < i) x2 = i;
+                        if (y1 > j) y1 = j;
+                        if (y2 < j) y2 = j;
+                    }
+                }
+            }
+            r_ave = (double)sum / (double)((x2 - x1) * (y2 - y1));
+            System.Diagnostics.Debug.WriteLine($"sum={sum} {r_ave}={sum}/{width} * {height}");
+            return (r_ave);
+        }
+        #endregion
+
+        #region 縦横比の算出
+        /// <summary>
+        /// 2021.08.14 D.Honjyou
+        /// 縦横比の算出
+        /// </summary>
+        /// <param name="bmp">ソース画像</param>
+        /// <returns></returns>
+        public double GetAspectRatio(BitmapSource bmp)
+        {
+            int i, j;
+            int x1, x2, y1, y2;
+            double Aratio;
+            //BitmapをPbrga32に変換する
+            FormatConvertedBitmap bitmap = new FormatConvertedBitmap(bmp, PixelFormats.Pbgra32, null, 0);
+
+            //画像サイズの配列を作る
+            int width = bitmap.PixelWidth;
+            int height = bitmap.PixelHeight;
+            byte r, g, b, a;
+            Color c;
+            byte[] orgPixels = new byte[width * height * 4];
+            //BitmapSourceから配列へコピー
+            int stride = (width * bitmap.Format.BitsPerPixel + 7) / 8;
+            bitmap.CopyPixels(orgPixels, stride, 0);
+
+            x1 = 9999;
+            x2 = 0;
+            y1 = 9999;
+            y2 = 0;
+            for (j = 0; j < height; j++)
+            {
+                for (i = 0; i < width; i++)
+                {
+                    r = orgPixels[(j * width + i) * 4 + 0];
+                    g = orgPixels[(j * width + i) * 4 + 1];
+                    b = orgPixels[(j * width + i) * 4 + 2];
+                    a = orgPixels[(j * width + i) * 4 + 3];
+                    c = Color.FromRgb(r, g, b);
+
+                    if (ColorCompare(c, Colors.White) != true && a != 0)
+                    {
+                        if (x1 > i) x1 = i;
+                        if (x2 < i) x2 = i;
+                        if (y1 > j) y1 = j;
+                        if (y2 < j) y2 = j;     
+                    }
+                }
+            }
+            Aratio = (double)(x2 - x1) / (double)(y2 - y1);
+            System.Diagnostics.Debug.WriteLine($"縦横比={Aratio} = {x2-x1} / {y2-y1}");
+            return (Aratio);
+        }
+        #endregion
+
         #region 大きさの正規化
         /// <summary>
         /// 2021.08.08 D.Honjyou
@@ -769,9 +879,7 @@ namespace CharacomEx
             //画像サイズの配列を作る
             int width = bitmap.PixelWidth;
             int height = bitmap.PixelHeight;
-            int i, j, k, x, y;
-            byte r, g, b;
-            Color c;
+            int i, j, x, y;
             byte[] orgPixels = new byte[width * height * 4];
             byte[] tmpPixels = new byte[321 * 321 * 4];
             byte[] srctmpPixels = new byte[321 * 321 * 4];
@@ -839,55 +947,6 @@ namespace CharacomEx
                         }
 
 
-                        /**
-                        r = tmpPixels[(y * width2 + x) * 4 + 0];
-                        g = tmpPixels[(y * width2 + x) * 4 + 1];
-                        b = tmpPixels[(y * width2 + x) * 4 + 2];
-                        c = Color.FromArgb(255, r, g, b);
-                        if(y < 10)
-                        {
-                            outPixels[(j * width2 + i) * 4 + 0] = 255;
-                            outPixels[(j * width2 + i) * 4 + 1] = 0;
-                            outPixels[(j * width2 + i) * 4 + 2] = 0;
-                            outPixels[(j * width2 + i) * 4 + 3] = 255;
-
-                        }else if(y < 20){
-                            outPixels[(j * width2 + i) * 4 + 0] = 0;
-                            outPixels[(j * width2 + i) * 4 + 1] = 255;
-                            outPixels[(j * width2 + i) * 4 + 2] = 0;
-                            outPixels[(j * width2 + i) * 4 + 3] = 255;
-                        }else if (y < 30)
-                        {
-                            outPixels[(j * width2 + i) * 4 + 0] = 0;
-                            outPixels[(j * width2 + i) * 4 + 1] = 0;
-                            outPixels[(j * width2 + i) * 4 + 2] = 255;
-                            outPixels[(j * width2 + i) * 4 + 3] = 255;
-                        }
-                        else
-                        {
-                            outPixels[(j * width2 + i) * 4 + 0] = 255;
-                            outPixels[(j * width2 + i) * 4 + 1] = 255;
-                            outPixels[(j * width2 + i) * 4 + 2] = 0;
-                            outPixels[(j * width2 + i) * 4 + 3] = 255;
-                        }
-                        
-                        if (ColorCompare(c, Colors.Black) == true)
-                        {
-                            outPixels[(j * width2 + i) * 4 + 0] = tmpPixels[(y * width2 + x) * 4 + 0];
-                            outPixels[(j * width2 + i) * 4 + 1] = tmpPixels[(y * width2 + x) * 4 + 1];
-                            outPixels[(j * width2 + i) * 4 + 2] = tmpPixels[(y * width2 + x) * 4 + 2];
-                            outPixels[(j * width2 + i) * 4 + 3] = tmpPixels[(y * width2 + x) * 4 + 3];
-                            //System.Diagnostics.Debug.WriteLine($"outpixcel {i},{j} =>Black");
-                            //bmp.SetPixel(i, j, Color.Black);
-                        }
-                        else
-                        {
-                            outPixels[(j * width2 + i) * 4 + 0] = 255;
-                            outPixels[(j * width2 + i) * 4 + 1] = 255;
-                            outPixels[(j * width2 + i) * 4 + 2] = 255;
-                            outPixels[(j * width2 + i) * 4 + 3] = 255;
-                        }
-                        **/
                     }
                     else
                     {
@@ -903,6 +962,469 @@ namespace CharacomEx
             BitmapSource outBmp = BitmapSource.Create(width2, height2, 96, 96, PixelFormats.Pbgra32, null, outPixels, stride2);
             //BitmapSource outBmp = BitmapSource.Create(width2, height2, 96, 96, PixelFormats.Pbgra32, null, tmpPixels, stride2);
             return (outBmp);
+        }
+        #endregion
+
+        #region 特徴抽出(加重方向指数ヒストグラム特徴)
+        private byte[,] GetArrayFromBmp(BitmapSource bmp)
+        {
+            int i, j;
+            byte[,] output = new byte[(int)bmp.Height, (int)bmp.Height];
+            //BitmapをPbrga32に変換する
+            FormatConvertedBitmap bitmap = new FormatConvertedBitmap(bmp, PixelFormats.Pbgra32, null, 0);
+
+            //画像サイズの配列を作る
+            int width = bitmap.PixelWidth;
+            int height = bitmap.PixelHeight;
+            byte r, g, b, a;
+            Color c;
+            byte[] orgPixels = new byte[width * height * 4];
+            //BitmapSourceから配列へコピー
+            int stride = (width * bitmap.Format.BitsPerPixel + 7) / 8;
+            bitmap.CopyPixels(orgPixels, stride, 0);
+
+            for (j = 0; j < bmp.Height; j++)
+            {
+                for (i = 0; i < bmp.Width; i++)
+                {
+                    r = orgPixels[(j * width + i) * 4 + 0];
+                    g = orgPixels[(j * width + i) * 4 + 1];
+                    b = orgPixels[(j * width + i) * 4 + 2];
+                    a = orgPixels[(j * width + i) * 4 + 3];
+                    c = Color.FromRgb(r, g, b);
+
+                    if (ColorCompare(c, Colors.White) != true && a != 0) output[j, i] = 1;
+                    else output[j, i] = 0;
+                }
+            }
+            return (output);
+        }
+
+        void dataSyoki(byte[] data)
+        {
+            int i;
+
+            for (i = 0; i < 160 * 20; i++)
+            {
+                data[i] = 0;
+            }
+        }
+        void data2Syoki(byte[,,] data2, int w, int h)
+        {
+            int i, j, k;
+
+            for (k = 0; k < 16; k++)
+            {
+                for (j = 0; j < w; j++)
+                {
+                    for (i = 0; i < h; i++)
+                    {
+                        data2[k, j, i] = 0;
+                    }
+                }
+            }
+        }
+
+        void data3Syoki(byte[,,] data3)
+        {
+            int i, j, k;
+
+            for (k = 0; k < 16; k++)
+            {
+                for (j = 0; j < 16; j++)
+                {
+                    for (i = 0; i < 16; i++)
+                    {
+                        data3[k, j, i] = 0;
+                    }
+                }
+            }
+        }
+        void data4Syoki(double[,,] data4)
+        {
+            int i, j, k;
+
+            for (k = 0; k < 16; k++)
+            {
+                for (j = 0; j < 8; j++)
+                {
+                    for (i = 0; i < 8; i++)
+                    {
+                        data4[k, j, i] = 0.0;
+                    }
+                }
+            }
+        }
+        void data5Syoki(double[,,] data5)
+        {
+            int i, j, k;
+
+            for (k = 0; k < 8; k++)
+            {
+                for (j = 0; j < 8; j++)
+                {
+                    for (i = 0; i < 8; i++)
+                    {
+                        data5[k, j, i] = 0.0;
+                    }
+                }
+            }
+        }
+        void data6Syoki(double[,,] data6)
+        {
+            int i, j, k;
+
+            for (k = 0; k < 4; k++)
+            {
+                for (j = 0; j < 8; j++)
+                {
+                    for (i = 0; i < 8; i++)
+                    {
+                        data6[k, j, i] = 0.0;
+                    }
+                }
+            }
+        }
+
+        void syokika(byte[,] dat3, byte[,] dat2, int w, int h)
+        {
+            int i, j;
+
+            for (i = 0; i < h + 2; i++)
+            {
+                for (j = 0; j < w + 2; j++)
+                {
+                    dat3[i, j] = 0;
+                }
+            }
+            for (i = 0; i < h; i++)
+            {
+                for (j = 0; j < w; j++)
+                {
+                    dat3[i + 1, j + 1] = dat2[i, j];
+                }
+            }
+        }
+
+        void tuiseki2(byte[,] dat3, byte[,,] data2, int ap, int bp, int x, int y, int bx, int by, int sc)
+        {
+            int i, j, data;
+            int[] px = { -1, -1, 0, 1, 1, 1, 0, -1 };
+            int[] py = { 0, 1, 1, 1, 0, -1, -1, -1 };
+            bp = 0; ap = 0;
+            for (i = 0; i < 8; i++)
+            {
+                if (px[i] == bx - x && py[i] == by - y)
+                {
+                    sc = i + 1;
+                }
+            }
+            for (i = 0; i < 8; i++)
+            {
+                if (px[i] == x - bx && py[i] == y - by)
+                {
+                    bp = (i + 4) % 8;
+                }
+            }
+            for (i = 0; i < 8; i++)
+            {
+                if (0 != dat3[y + py[(sc + i) % 8], x + px[(sc + i) % 8]])
+                {
+                    dat3[y + py[(sc + i) % 8], x + px[(sc + i) % 8]] = 7;
+                    by = y; bx = x;
+                    y += py[(sc + i) % 8]; x += px[(sc + i) % 8];
+                    for (j = 0; j < 8; j++)
+                    {
+                        if (px[j] == bx - x && py[j] == by - y)
+                        {
+                            ap = j;
+                            data = bp + ap;
+                            data2[data, by - 1, bx - 1]++;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        void tuiseki(byte[,] dat3, byte[,,] data2, int ap, int bp, int x, int y, int n, int num)
+        {
+            int i, j, data, sx, sy, sc, bx, by, check, sum;
+            int[] px = { -1, -1, 0, 1, 1, 1, 0, -1 };
+            int[] py = { 0, 1, 1, 1, 0, -1, -1, -1 };
+            sx = x; sy = y;
+            bx = 0; by = 0;
+            bp = 10;
+            sum = 0;
+            sc = num;
+            check = 0;
+            do
+            {
+                if (check != 0)
+                {
+                    for (i = 0; i < 8; i++)
+                    {
+                        if (px[i] == bx - x && py[i] == by - y)
+                        {
+                            sc = i + 1;
+                        }
+                    }
+                    for (i = 0; i < 8; i++)
+                    {
+                        if (px[i] == x - bx && py[i] == y - by)
+                        {
+                            bp = (i + 4) % 8;
+                        }
+                    }
+                }
+                check = 1;
+                for (i = 0; i < 8; i++)
+                {
+                    if (0 != dat3[y + py[(sc + i) % 8], x + px[(sc + i) % 8]])
+                    {
+                        dat3[y + py[(sc + i) % 8], x + px[(sc + i) % 8]] = 7;
+                        by = y; bx = x;
+                        y += py[(sc + i) % 8]; x += px[(sc + i) % 8];
+                        for (j = 0; j < 8; j++)
+                        {
+                            if (px[j] == bx - x && py[j] == by - y)
+                            {
+                                ap = j;
+                                data = bp + ap;
+                                if (sum == 1) data2[data, by - 1, bx - 1]++;
+                                sum = 1;
+
+                            }
+                        }
+                        break;
+                    }
+                }
+            } while (x != sx || y != sy);
+            x = sx; y = sy;
+            tuiseki2(dat3, data2, ap, bp, x, y, bx, by, sc);
+        }
+
+        void rasta(byte[,] dat3, byte[,,] data2, int w, int h, int ap, int bp)
+        {
+            int i, j, n = 3;
+            for (i = 0; i < h + 1; i++)
+            {
+                for (j = 0; j < w + 1; j++)
+                {
+                    if (dat3[i, j] == 0 && dat3[i, j + 1] == 1)
+                    {
+                        dat3[i, j + 1] = 7;
+                        tuiseki(dat3, data2, ap, bp, j + 1, i, n, 0);
+                    }
+                    if (dat3[i, j] == 1 && dat3[i, j + 1] == 0)
+                    {
+                        dat3[i, j] = 7;
+                        tuiseki(dat3, data2, ap, bp, j, i, n, 4);
+                    }
+                }
+            }
+            for (j = h + 1; j > 0; j--)
+            {
+                for (i = w + 1; i > 0; i--)
+                {
+                    if (dat3[i, j] == 0 && dat3[i - 1, j] == 1)
+                    {
+                        dat3[i - 1, j] = 7;
+                        tuiseki(dat3, data2, ap, bp, j, i - 1, n, 2);
+                    }
+                    if (dat3[i, j] == 1 && dat3[i - 1, j] == 0)
+                    {
+                        dat3[i, j] = 7;
+                        tuiseki(dat3, data2, ap, bp, j, i, n, 6);
+                    }
+                }
+            }
+        }
+
+        void ryousika(byte[,,] data2, byte[,,] data3, int w, int h)
+        {
+            int i, j, k, m, n;
+
+            for (i = 0; i < 16; i++)
+            {
+                for (j = 0; j < 16; j++)
+                {
+                    for (k = 0; k < 16; k++)
+                    {
+                        for (m = 0; m < h / 16; m++)
+                        {
+                            for (n = 0; n < w / 16; n++)
+                            {
+                                data3[i, j, k] += data2[i, (10 * j) + m, (10 * k) + n];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        void gaus_fil<Type>(Type[,,] data3, double[,,] data4)
+        {
+            int m, n, i, j, k;
+            double sum = 0.0;
+            //Type work;
+            double[,] gaus ={{0.00,0.09,0.17,0.09,0.00},
+                             {0.09,0.57,1.05,0.57,0.09},
+                             {0.17,1.05,1.94,1.05,0.17},
+                             {0.09,0.57,1.05,0.57,0.09},
+                             {0.00,0.09,0.17,0.09,0.00}};
+            System.Diagnostics.Debug.WriteLine(data4.GetLength(0).ToString() + "," + data4.GetLength(1).ToString() + "," + data4.GetLength(2).ToString());
+            for (i = 0; i < data4.GetLength(0); i++)
+            {
+                for (j = 0; j < 8; j++)
+                {
+                    for (k = 0; k < 8; k++)
+                    {
+                        sum = 0.0;
+                        for (m = 0; m < 5; m++)
+                        {
+                            for (n = 0; n < 5; n++)
+                            {
+                                if (2 * j + m - 2 > 0 && 2 * j + m - 2 < 16 && 2 * k + n - 2 > 0 && 2 * k + n - 2 < 16)
+                                {
+                                    //work = data3[i,2*j+m-2,2*k+n-2];
+                                    //sum+=data3[i,2*j+m-2,2*k+n-2]*gaus[m,n];
+                                    sum += Convert.ToDouble(data3[i, 2 * j + m - 2, 2 * k + n - 2]) * gaus[m, n];
+                                }
+                            }
+                        }
+                        data4[i, j, k] = sum;
+                    }
+                }
+            }
+        }
+
+        void houkou(double[,,] data4, double[,,] data5)
+        {
+            int i, j, k;
+
+            for (i = 0; i < 16; i += 2)
+            {
+                for (j = 0; j < 8; j++)
+                {
+                    for (k = 0; k < 8; k++)
+                    {
+                        if (i == 0) data5[i / 2, j, k] = data4[15, j, k] + data4[0, j, k] * 2 + data4[1, j, k];
+                        else data5[i / 2, j, k] = data4[i - 1, j, k] + data4[i, j, k] * 2 + data4[i + 1, j, k];
+                    }
+                }
+            }
+        }
+
+        void douitusi(double[,,] data5, double[,,] data6)
+        {
+            int i, j, k;
+
+            for (i = 0; i < 8; i++)
+            {
+                for (j = 0; j < 8; j++)
+                {
+                    for (k = 0; k < 8; k++)
+                    {
+                        if (i > 3) data6[i - 4, j, k] += data5[i, j, k];
+                        else data6[i, j, k] += data5[i, j, k];
+                    }
+                }
+            }
+        }
+
+        void kajyu_data(double[,,] data6, double[] nyuuryoku)
+        {
+            int i, j, k;
+            for (i = 0; i < 256; i++)
+            {
+                nyuuryoku[i] = 0;
+            }
+            for (i = 0; i < 4; i++)
+            {
+                for (j = 0; j < 8; j++)
+                {
+                    for (k = 0; k < 8; k++)
+                    {
+                        nyuuryoku[i * 64 + j * 8 + k] = data6[i, j, k];
+                    }
+                }
+            }
+        }
+
+        public void GetKajyu(BitmapSource bmp, double[] outDat)
+        {
+            int j, m, n;
+            byte[,] data1 = new byte[(int)bmp.Height, (int)bmp.Height];
+            byte[,] dat3 = new byte[(int)bmp.Height + 2, (int)bmp.Height + 2];
+            byte[,,] data2 = new byte[16, (int)bmp.Width, (int)bmp.Height];
+            byte[,,] data3 = new byte[16, 16, 16];
+            double[,,] data4 = new double[16, 8, 8];
+            double[,,] data5 = new double[8, 8, 8];
+            double[,,] data6 = new double[4, 8, 8];
+            //double[] outDat = new double[4];
+            double maxd, mind, work;
+            double R1 = 10.0;
+            int ap, bp;
+
+            ap = 0; bp = 0;
+            Noize(bmp);
+            //Normalize(bmp, R);
+            data1 = GetArrayFromBmp(bmp);
+            data2Syoki(data2, (int)bmp.Width, (int)bmp.Height);
+            data3Syoki(data3);
+            data4Syoki(data4);
+            data5Syoki(data5);
+            data6Syoki(data6);
+
+            syokika(dat3, data1, (int)bmp.Width, (int)bmp.Height); //
+            rasta(dat3, data2, (int)bmp.Width, (int)bmp.Height, ap, bp);
+            ryousika(data2, data3, (int)bmp.Width, (int)bmp.Height);
+            gaus_fil(data3, data4);
+            houkou(data4, data5);
+            douitusi(data5, data6);
+
+            //kajyu_data(data6, kajyu);
+            maxd = 0.0;
+            mind = 10000.0;
+            for (j = 0; j < 4; j++)
+            {
+                for (m = 0; m < 8; m++)
+                {
+                    for (n = 0; n < 8; n++)
+                    {
+                        if (maxd < data6[j, m, n]) maxd = data6[j, m, n];
+                        if (mind > data6[j, m, n]) mind = data6[j, m, n];
+                    }
+                }
+            }
+            work = (maxd - mind) / R1;
+            for (j = 0; j < 4; j++)
+            {
+                for (m = 0; m < 8; m++)
+                {
+                    for (n = 0; n < 8; n++)
+                    {
+                        data6[j, m, n] = data6[j, m, n] / work;
+                    }
+                }
+            }
+            System.Diagnostics.Debug.WriteLine("-----------------------------------------------------------");
+            for (j = 0; j < 4; j++)
+            {
+                outDat[j] = 0.0;
+                for (m = 0; m < 8; m++)
+                {
+                    for (n = 0; n < 8; n++)
+                    {
+                        //System.Diagnostics.Debug.Write( $"{data6[j, m, n]},");
+                        outDat[j] += data6[j, m, n];
+                    }
+                    
+                }
+                outDat[j] /= 64;
+                System.Diagnostics.Debug.WriteLine(outDat[j].ToString());
+            }
+            //kajyu_data(data6, kajyuView);
         }
         #endregion
     }

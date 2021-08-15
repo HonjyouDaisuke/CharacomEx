@@ -33,7 +33,7 @@ namespace CharacomEx
         private ImageEffect imageEffect = new ImageEffect();
         private BitmapSource charaSrcImage;
 
-        private int sIndex;
+        //private int sIndex;
         /// <summary>
         /// MetroWindow
         /// </summary>
@@ -45,7 +45,7 @@ namespace CharacomEx
         {
             InitializeComponent();
 
-            sIndex = 3;
+            //sIndex = 3;
             //ペンサイズと色のデフォルト値を設定
             _penSize = 1;
             _penColor = Colors.Black;
@@ -65,7 +65,7 @@ namespace CharacomEx
             //imgCharaSrc.Source = (BitmapSource)CharaSrcImage;
 
 
-            InitializeChart();
+            //InitializeChart();
         }
 
         private void PenToggle_Checked(object sender, RoutedEventArgs e)
@@ -114,7 +114,8 @@ namespace CharacomEx
         /// </summary>
         private void SetPenAttributes()
         {
-            DrawingAttributes da = new DrawingAttributes();
+            DrawingAttributes drawingAttributes = new DrawingAttributes();
+            DrawingAttributes da = drawingAttributes;
 
             da.Width = _penSize;
             da.Height = _penSize;
@@ -412,23 +413,33 @@ namespace CharacomEx
             charaProcCanvas.Width = proc_bmp.Width;
             charaProcCanvas.Height = proc_bmp.Height;
             DrawWaku(null, null);
-            
+
+            double rate, Aratio;
+            double[] Kajyu = new double[4]; 
+            rate = imageEffect.GetPixelRate(proc_bmp);
+            Aratio = imageEffect.GetAspectRatio(proc_bmp);
+            imageEffect.GetKajyu(proc_bmp,Kajyu);
+            System.Diagnostics.Debug.WriteLine($"画素数の割合＝{rate}%");
+            System.Diagnostics.Debug.WriteLine($"縦横比＝{Aratio}%");
+
+            //レーダーチャートを作成
+            InitializeChart(rate, Aratio, Kajyu);
         }
 
         /// <summary>
         /// グラフを初期化する
         /// </summary>
-        private void InitializeChart()
+        private void InitializeChart(double Rate, double Aratio, double[] Kajyu)
         {
             System.Diagnostics.Debug.WriteLine("レーダーチャート描きます。");
             //グルーピングのデータ作成
-            string[] items = { "コア数", "クロック数", "スレッド数", "キャッシュ", "価格" };
+            string[] items = { "画素数比率", "縦横比", "加重─", "加重／", "加重│", "加重＼" };
             List<(string, double[])> datas = new List<(string, double[])>();
-            datas.Add(("Core-i7", new double[] { 8, 3.6, 16, 64, 70 }));
-            datas.Add(("Core-i5", new double[] { 6, 2.8, 12, 32, 50 }));
-            datas.Add(("Core-i3", new double[] { 4, 2.0, 8, 16, 30 }));
-            datas.Add(("Pentium", new double[] { 2, 1.8, 4, 8, 10 }));
-            datas.Add(("Celeron", new double[] { 2, 1.5, 4, 8, 5 }));
+            datas.Add(("画像処理結果", new double[] { Rate*100, Aratio*100, Kajyu[0]*100, Kajyu[1]*100, Kajyu[2]*100, Kajyu[3]*100 }));
+            //datas.Add(("Core-i5", new double[] { 6, 2.8, 12, 32, 50 }));
+            //datas.Add(("Core-i3", new double[] { 4, 2.0, 8, 16, 30 }));
+            //datas.Add(("Pentium", new double[] { 2, 1.8, 4, 8, 10 }));
+            //datas.Add(("Celeron", new double[] { 2, 1.5, 4, 8, 5 }));
             DrawRadar(MyChart, "レーダー", items, datas);
         }
 
@@ -439,7 +450,6 @@ namespace CharacomEx
         /// <param name="title"></param>
         /// <param name="labels"></param>
         /// <param name="values"></param>
-
         private void DrawRadar(Chart chart, string title, string[] labels, List<(string legend, double[] ys)> values)
         {
             ChartInit(chart, title, false);
@@ -542,7 +552,7 @@ namespace CharacomEx
 
         private void InitializeChart_Click(object sender, RoutedEventArgs e)
         {
-            InitializeChart();
+            //InitializeChart();
         }
     }
 

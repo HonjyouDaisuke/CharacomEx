@@ -10,10 +10,12 @@
                       xmlns:sys="clr-namespace:System;assembly=mscorlib"
                       Title="CharacomImager Ex"
                       TitleCharacterCasing="Normal"
+                      Icon="CharacomEx.ico"
                       Width="500"
                       Height="350"
                       mc:Ignorable="d">
     <!-- プロジェクトのツリービューを表示するFlyout -->
+    <!--
     <Controls:MetroWindow.LeftWindowCommands>
         <Controls:WindowCommands>
             <Button ToolTip="Project" Click="ShowFlyout">
@@ -21,7 +23,7 @@
             </Button>
         </Controls:WindowCommands>
     </Controls:MetroWindow.LeftWindowCommands>
-
+    -->
     <!-- 通知を表示するFlyout -->
     <Controls:MetroWindow.RightWindowCommands>
         <Controls:WindowCommands>
@@ -149,6 +151,13 @@
                 <Separator/>
                 <MenuItem x:Name="MenuNomalizeCheck" Header="大きさ変換" IsCheckable="True" IsChecked="True" />
                 <MenuItem x:Name="MenuCenterCheck" Header="重心を中心に" IsCheckable="True" IsChecked="True" />
+            </MenuItem>
+            <MenuItem Header="ヘルプ">
+                <MenuItem Header="バージョン情報" Click="MenuItemVersionInfo">
+                    <MenuItem.Icon>
+                        <icon:PackIconPicolIcons Kind="DocumentSansInformation" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
         </Menu>
 

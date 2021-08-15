@@ -145,15 +145,19 @@
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Foreground="{DynamicResource MahApps.Brushes.Badged.Foreground}" Background="{DynamicResource MahApps.Brushes.WindowTitle}">総合判定</Label>
+                <!--
                 <ScrollViewer x:Name="ChartScrollViewer" 
                               Grid.Row="1"
                               HorizontalScrollBarVisibility="Visible"
                               VerticalScrollBarVisibility="Visible"
                               Background="DarkGray">
-                    <WindowsFormsHost HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                -->
+                    <WindowsFormsHost Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                         <wfc:Chart x:Name="MyChart" />
                     </WindowsFormsHost>
+                <!--
                 </ScrollViewer>
+                -->
             </Grid>
         </Border>
     </Grid>

@@ -22,6 +22,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.Win32;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 using ControlzEx.Theming;
 using ui = ModernWpf.Controls;
 using Image = System.Windows.Controls.Image;
@@ -45,7 +46,7 @@ namespace CharacomEx
         public int CharaImageIndex { get => _charaImageIndex; set => _charaImageIndex = value; }
         public ProjectClass Project { get => _project; set => _project = value; }
 
-
+        
 
         public MainWindow()
         {
@@ -891,6 +892,11 @@ namespace CharacomEx
             }
         }
 
+        private async void MsgBoxShow(string str)
+        {
+            await this.ShowMessageAsync("CharacomImager Ex", str);
+        }
+
         /// <summary>
         /// 画像をすべて書き出しメニュー
         /// </summary>
@@ -917,6 +923,7 @@ namespace CharacomEx
 
             if (dlg.ShowDialog() == MSAPI::Dialogs.CommonFileDialogResult.Cancel)
             {
+                MsgBoxShow("キャンセルされました。");
                 //キャンセルが押された。
                 return;
                 //MessageBox.Show($"{dlg.FileName}が選択されました。");
@@ -956,6 +963,7 @@ namespace CharacomEx
                     stream.Close();
                 }
             }
+            MsgBoxShow("JPEGファイルに書き出しました。");
         }
 
 
@@ -984,7 +992,6 @@ namespace CharacomEx
                 _project.MainImages[MainImageIndex].CharaImages.RemoveAt(CharaImageIndex);
                 mainTab.Items.RemoveAt(mainTab.SelectedIndex);
                 //メイン画像の矩形を一度クリアする
-                int tMainImageIndex;
                 foreach (TabItem t in mainTab.Items)
                 {
                     if (t.Header.ToString() == _project.MainImages[MainImageIndex].MainImageName)
@@ -1040,6 +1047,31 @@ namespace CharacomEx
                     ((CharaTabItemUserControl)t.Content).DrawWaku(sender, e);
                 }
             }
+        }
+
+        /// <summary>
+        /// バージョン情報の表示
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MenuItemVersionInfo(object sender, RoutedEventArgs e)
+        {
+            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            System.Reflection.AssemblyName asmName = assembly.GetName();
+            System.Version version = asmName.Version;
+            System.Reflection.AssemblyTitleAttribute asmTitle = (System.Reflection.AssemblyTitleAttribute)Attribute.GetCustomAttribute(assembly,
+                                                                    typeof(System.Reflection.AssemblyTitleAttribute));
+            System.Reflection.AssemblyCopyrightAttribute asmCopyright = (System.Reflection.AssemblyCopyrightAttribute)Attribute.GetCustomAttribute(assembly,
+                                                                typeof(System.Reflection.AssemblyCopyrightAttribute));
+
+            var build = version.Build;
+            var revision = version.Revision;
+            var baseDate = new DateTime(2000, 1, 1);
+
+            System.Diagnostics.Debug.WriteLine($"build = {build}, revision = {revision}");
+            string strVersion = "Version " + version.ToString();
+            string strBuild = "ビルド日時 @" + baseDate.AddDays(build).AddSeconds(revision * 2);
+            MsgBoxShow($"バージョン情報\n\n{strVersion}\n{strBuild}\n\n{asmCopyright.Copyright}");
         }
     }
 
