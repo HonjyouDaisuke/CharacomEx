@@ -1,0 +1,56 @@
+﻿<Controls:MetroWindow x:Class="CharacomEx.NotificationWindow"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      xmlns:local="clr-namespace:CharacomEx"
+                      mc:Ignorable="d"
+                      Icon="CharacomEx.ico"
+                      Title="システムからの通知" Height="450" Width="300" Loaded="MetroWindow_Loaded">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height=".9*" />
+            <RowDefinition Height=".1*" />
+        </Grid.RowDefinitions>
+        <ScrollViewer Grid.Row="0" Background="Transparent" VerticalScrollBarVisibility="auto"   >
+
+            <ListView x:Name="NotificationsList" 
+                      HorizontalAlignment="Stretch"
+                      SelectionMode="Extended" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListView.ItemTemplate>
+                    <DataTemplate DataType="local:NotificationClass">
+                        <Grid HorizontalAlignment="Stretch" Background="AliceBlue">
+                            <ContentControl MouseDoubleClick="MessageDoubleClicked">
+                                <StackPanel Margin="2">
+                                    
+                                    <TextBlock FontSize="20" Width="260" Text="{Binding Title}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock"  >
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsOpened}" Value="False">
+                                                        <Setter Property="TextBlock.FontWeight" Value="Bold" />
+                                                        <Setter Property="Foreground" Value="DarkBlue" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                        
+                                    </TextBlock>
+                                    <TextBlock FontSize="14"  LineStackingStrategy="BlockLineHeight" LineHeight="15" MaxHeight="30" TextTrimming="WordEllipsis" Width="260" Text="{Binding Message}" />
+                                    <TextBlock FontSize="14" TextTrimming="CharacterEllipsis" Width="260" Text="{Binding AuthorName}" />
+                                    <TextBlock FontSize="14" TextTrimming="CharacterEllipsis" Width="260" Text="{Binding StartDate}" />
+                                    <TextBlock HorizontalAlignment="Stretch" Width="260" Text="{Binding CreateDate}" />
+                                </StackPanel>
+                            </ContentControl>
+                        </Grid>
+
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+        </ScrollViewer>
+        <Button Grid.Row="1" Content="OK" Click="btnOK_Clicked" />
+    </Grid>
+
+</Controls:MetroWindow>

@@ -91,4 +91,28 @@ namespace CharacomEx
         public int MainIndex { get => _mainIndex; set => _mainIndex = value; }
         public int CharaIndex { get => _charaIndex; set => _charaIndex = value; }
     }
+
+    /// <summary>
+    /// 2021.08.20
+    /// 通知のためのクラス
+    /// </summary>
+    [Serializable()]
+    public class NotificationClass
+    {
+        private string _title;
+        private string _authorName;
+        private string _message;
+        private string _createDate;
+        private string _startDate;
+        private string _id;
+        private bool _isOpened;
+
+        public string Title { get => _title; set => _title = value; }
+        public string Message { get => _message; set => _message = value; }
+        public string Id { get => _id; set => _id = value; }
+        public bool IsOpened { get => _isOpened; set => _isOpened = value; }
+        public string AuthorName { get => _authorName; set => _authorName = value; }
+        public string CreateDate { get => _createDate; set => _createDate = value; }
+        public string StartDate { get => _startDate; set => _startDate = value; }
+    }
 }

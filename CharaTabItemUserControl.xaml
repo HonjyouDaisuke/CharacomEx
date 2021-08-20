@@ -48,7 +48,7 @@
                               SelectedColorChanged="ColorPicker_SelectedColorChanged"
                               mah:TextBoxHelper.ClearTextButton="True"
                               mah:TextBoxHelper.UseFloatingWatermark="True"
-                              mah:TextBoxHelper.Watermark="色を選択r"
+                              mah:TextBoxHelper.Watermark="色を選択"
                               AddToRecentColorsTrigger="SelectedColorChanged" />
 
             <Separator />

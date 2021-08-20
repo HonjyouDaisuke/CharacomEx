@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Web;
+using System.Net;
+using System.Text;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,7 +26,6 @@ using Microsoft.Win32;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using ControlzEx.Theming;
-using ui = ModernWpf.Controls;
 using Image = System.Windows.Controls.Image;
 using Pen = System.Windows.Media.Pen;
 using Brushes = System.Windows.Media.Brushes;
@@ -42,12 +43,13 @@ namespace CharacomEx
         private ProjectClass _project = new ProjectClass();
         public int MainImageIndex;
         private int _charaImageIndex;
+        private ObservableCollection<NotificationClass> _notifications = new ObservableCollection<NotificationClass>();
+
 
         public int CharaImageIndex { get => _charaImageIndex; set => _charaImageIndex = value; }
         public ProjectClass Project { get => _project; set => _project = value; }
-
-        
-
+        public ObservableCollection<NotificationClass> Notifications { get => _notifications; set => _notifications = value; }
+        public string UnopenedNotificationNum;
         public MainWindow()
         {
             InitializeComponent();
@@ -61,6 +63,181 @@ namespace CharacomEx
 
             MainImageIndex = 0;
             _charaImageIndex = 0;
+
+            LoadNotifications();
+            GetNotifications();
+
+            UnopenedNotificationNum = CountUnopenedNotificationNum();
+            this.DataContext = new { UnNotificationNum = UnopenedNotificationNum };
+        }
+
+        /// <summary>
+        /// 2021.08.21 D.Honjyou
+        /// 通知情報をローカルファイルから読み込む
+        /// </summary>
+        private void LoadNotifications()
+        {
+            string path = "notification.ini";
+            if (File.Exists(path))
+            {
+                FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+                BinaryFormatter f = new BinaryFormatter();
+                //読み込んで逆シリアル化する
+                _notifications = (ObservableCollection<NotificationClass>)f.Deserialize(fs);
+                fs.Close();
+            }
+        }
+
+        /// <summary>
+        /// 2021.08.21 D.Honjyou
+        /// 通知情報をローカルファイルに書き出す
+        /// </summary>
+        private void SaveNotifications()
+        {
+            FileStream fs = new FileStream("notification.ini", FileMode.Create, FileAccess.Write);
+            BinaryFormatter bf = new BinaryFormatter();
+            //シリアル化して書き込む
+            bf.Serialize(fs, _notifications);
+            fs.Close();
+        }
+
+        /// <summary>
+        /// 2021.08.21 D.Honjyou
+        /// 未読通知を数える
+        /// </summary>
+        private string CountUnopenedNotificationNum()
+        {
+            int num;
+            string strCount;
+
+            num = 0;
+            foreach(NotificationClass n in _notifications)
+            {
+                if (n.IsOpened == false) num++;
+            }
+
+            if (num < 1) strCount = "";
+            else strCount = num.ToString();
+
+            return (strCount);
+        }
+
+        /// <summary>
+        /// 2021.08.21 D.Honjyou
+        /// 現在取得済みの通知IDの最大値を返す
+        /// </summary>
+        /// <returns></returns>
+        private int GetMaxNotificationID()
+        {
+            int max = 0;
+            Console.WriteLine($"count={_notifications.Count};");
+            if (_notifications.Count > 0)
+            {
+                foreach (NotificationClass n in _notifications)
+                {
+                    Console.WriteLine($"ID=={n.Id};Title={n.Title}");
+                    if(n.Id != "")
+                    {
+                        if (max < int.Parse(n.Id)) max = int.Parse(n.Id);
+                    }
+                    
+                }
+            }
+            Console.WriteLine($"MaxID=={max};");
+            return max;
+        }
+        public void test()
+        {
+            UnopenedNotificationNum = CountUnopenedNotificationNum();
+            this.DataContext = new { UnNotificationNum = UnopenedNotificationNum };
+        }
+        /// <summary>
+        /// 2021.08.20 D.Honjyou
+        /// インターネットから通知情報を受け取り、Notificationオブジェクトに挿入する。
+        /// </summary>
+        private void GetNotifications()
+        {
+            //2021.08.18 通知の取得
+            //文字コードを指定する
+            Encoding enc = Encoding.GetEncoding("euc-jp");
+
+            //POST送信する文字列を作成
+            string postData = "NowID=" + GetMaxNotificationID().ToString();
+            //バイト型配列に変換
+            byte[] postDataBytes = Encoding.ASCII.GetBytes(postData);
+
+            //WebRequestの作成
+            WebRequest req = WebRequest.Create("http://characom.sakuraweb.com/CharacomEX/GetNotifications.php");
+            //メソッドにPOSTを指定
+            req.Method = "POST";
+            //ContentTypeを"application/x-www-form-urlencoded"にする
+            req.ContentType = "application/x-www-form-urlencoded";
+            //POST送信するデータの長さを指定
+            req.ContentLength = postDataBytes.Length;
+
+            //データをPOST送信するためのStreamを取得
+            Stream reqStream = req.GetRequestStream();
+            //送信するデータを書き込む
+            reqStream.Write(postDataBytes, 0, postDataBytes.Length);
+            reqStream.Close();
+
+            //サーバーからの応答を受信するためのWebResponseを取得
+            WebResponse res = req.GetResponse();
+            //応答データを受信するためのStreamを取得
+            Stream resStream = res.GetResponseStream();
+            //受信して表示
+            StreamReader sr = new StreamReader(resStream, enc);
+
+            string str = sr.ReadToEnd();
+            Console.WriteLine($"Str==== {str}");
+            if (str == "") return;
+
+            var test = new List<string>();
+            test.AddRange(str.Split(','));
+            if (test[0] == "Not") return;
+
+            //サーバーから受け取った文字列を分割
+            var list = new List<string>();
+            
+            list.AddRange(str.Split('|'));
+            foreach (string tmp in list)
+            {
+                string Title;
+                string Message;
+                string CreateDate;
+                string StartDate;
+                string AuthorName;
+                string id;
+                if (tmp != "")
+                {
+                    string[] arr = tmp.Split(',');
+                    id = arr[0];
+                    Title = arr[1];
+                    Message = arr[2];
+                    AuthorName = "送信者：" + arr[3];
+                    CreateDate = "作成日：" + arr[4];
+                    StartDate = "発信日：" + arr[5];
+                    Console.WriteLine($"temp={tmp}");
+                    NotificationClass n = new NotificationClass();
+                    n.Id = id;
+                    n.Title = Title;
+                    n.Message = Message;
+                    n.AuthorName = AuthorName;
+                    n.CreateDate = CreateDate;
+                    n.StartDate = StartDate;
+                    n.IsOpened = false;
+
+                    Notifications.Insert(0, n);
+
+                }
+
+
+            }
+
+
+            //閉じる
+            sr.Close();
+
         }
 
         private void ShowFlyout(object sender, RoutedEventArgs e)
@@ -966,14 +1143,18 @@ namespace CharacomEx
             MsgBoxShow("JPEGファイルに書き出しました。");
         }
 
-
+       
         /// <summary>
-        /// 2021.07.31 タブを閉じるボタンをクリックした時の処理
+        /// 2021.08.16 D.Honjyou 
+        /// タブを閉じるボタンをクリックした時の処理
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void CloseTabItem_Click(object sender, MouseButtonEventArgs e)
         {
+            var tabItem = ((TextBlock)sender).FindAncestor<TabItem>();
+
+            tabItem.IsSelected = true;
             mainTab.Items.RemoveAt(mainTab.SelectedIndex);
 
         }
@@ -1073,6 +1254,28 @@ namespace CharacomEx
             string strBuild = "ビルド日時 @" + baseDate.AddDays(build).AddSeconds(revision * 2);
             MsgBoxShow($"バージョン情報\n\n{strVersion}\n{strBuild}\n\n{asmCopyright.Copyright}");
         }
+
+        /// <summary>
+        /// 通知ウィンドウの表示
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ShowNotificationWindow(object sender, RoutedEventArgs e)
+        {
+            NotificationWindow win = new NotificationWindow();
+            win.ShowDialog();
+        }
+
+        /// <summary>
+        /// 2021.08.21 D.Honjyou
+        /// メインウィンドウ終了時
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SaveNotifications();
+        }
     }
 
 
@@ -1085,6 +1288,27 @@ namespace CharacomEx
             this.Strokes.Add(newStroke);
 
             base.OnStrokeCollected(new InkCanvasStrokeCollectedEventArgs(newStroke));
+        }
+    }
+
+    public static class VisualTreeHelperWrapper
+    {
+        /// <summary>
+        /// VisualTreeを親側にたどって、
+        /// 指定した型の要素を探す
+        /// </summary>
+        public static T FindAncestor<T>(this DependencyObject depObj)
+            where T : DependencyObject
+        {
+            while (depObj != null)
+            {
+                if (depObj is T target)
+                {
+                    return target;
+                }
+                depObj = VisualTreeHelper.GetParent(depObj);
+            }
+            return null;
         }
     }
 
