@@ -314,9 +314,9 @@ namespace CharacomEx
         public BitmapSource ExtractionProc(BitmapSource Src, BitmapSource twoSrc, BitmapSource SelectedArea)
         {
             //BitmapをPbrga32に変換する
-            FormatConvertedBitmap s_bmp1 = new FormatConvertedBitmap(Src, PixelFormats.Pbgra32, null, 0);
-            FormatConvertedBitmap s_bmp2 = new FormatConvertedBitmap(twoSrc, PixelFormats.Pbgra32, null, 0);
-            FormatConvertedBitmap s_bmp3 = new FormatConvertedBitmap(SelectedArea, PixelFormats.Pbgra32, null, 0);
+            FormatConvertedBitmap s_bmp1 = new FormatConvertedBitmap(Src, PixelFormats.Pbgra32, null, 0);           //原画像
+            FormatConvertedBitmap s_bmp2 = new FormatConvertedBitmap(twoSrc, PixelFormats.Pbgra32, null, 0);        //2値画像
+            FormatConvertedBitmap s_bmp3 = new FormatConvertedBitmap(SelectedArea, PixelFormats.Pbgra32, null, 0);  //矩形エリア
 
             //画像サイズの配列を作る
             int width = s_bmp1.PixelWidth;
@@ -344,10 +344,7 @@ namespace CharacomEx
                         orgPixels1[(y * (int)width + x) * 4 + 1] = 255;
                         orgPixels1[(y * (int)width + x) * 4 + 2] = 255;
                     }
-                    else
-                    {
-                        orgPixels1[(y * (int)width + x) * 4 + 3] = 255;
-                    }
+                    
 
                 }
             }
