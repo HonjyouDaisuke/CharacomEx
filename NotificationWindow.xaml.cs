@@ -33,8 +33,6 @@ namespace CharacomEx
             InitializeComponent();
         }
 
-        
-
         private void MessageDoubleClicked(object sender, MouseButtonEventArgs e)
         {
 

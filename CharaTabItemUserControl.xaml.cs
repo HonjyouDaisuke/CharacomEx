@@ -17,7 +17,6 @@ using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using System.Windows.Forms.DataVisualization.Charting;
 
-
 namespace CharacomEx
 {
     /// <summary>
@@ -32,7 +31,9 @@ namespace CharacomEx
         public Color PenColor { get => _penColor; set => _penColor = value; }
         private ImageEffect imageEffect = new ImageEffect();
         private BitmapSource charaSrcImage;
-
+        private int _mainIndex;
+        private int _charaIndex;
+        
         //private int sIndex;
         /// <summary>
         /// MetroWindow
@@ -40,6 +41,8 @@ namespace CharacomEx
         public MetroWindow Metro { get; set; } = System.Windows.Application.Current.MainWindow as MetroWindow;
         public string CharaImageName { get => _charaImageName; set => _charaImageName = value; }
         public BitmapSource CharaSrcImage { get => charaSrcImage; set => charaSrcImage = value; }
+        public int MainIndex { get => _mainIndex; set => _mainIndex = value; }
+        public int CharaIndex { get => _charaIndex; set => _charaIndex = value; }
 
         public CharaTabItemUserControl(BitmapSource img)
         {
@@ -64,7 +67,7 @@ namespace CharacomEx
             //ソース画像を表示
             //imgCharaSrc.Source = (BitmapSource)CharaSrcImage;
 
-
+            this.DataContext = this;
             //InitializeChart();
         }
 
@@ -105,7 +108,17 @@ namespace CharacomEx
             renderTargetBitmap.Render(drawingVisual);
 
             var Oya = (MainWindow)Application.Current.MainWindow;
+
+            System.Diagnostics.Debug.WriteLine($"MainWin MainIndex = {Oya.MainImageIndex} CharaIndex = {Oya.CharaImageIndex}, CharaWin main={MainIndex} chara={CharaIndex}");
             Oya.Project.MainImages[Oya.MainImageIndex].CharaImages[Oya.CharaImageIndex].CharaImage.Source = renderTargetBitmap;
+            //Oya.Project.MainImages[MainIndex].CharaImages[CharaIndex].CharaImage.Source = renderTargetBitmap;
+
+
+            charaSrcImage = renderTargetBitmap;
+            
+            ImageProcessExe();
+            charaInkCanvas.Strokes.Clear();
+            DrawWaku(null, null);
         }
 
         /// <summary>
@@ -217,17 +230,6 @@ namespace CharacomEx
             scrollViewer.ScrollToVerticalOffset(y_barOffset);
         }
 
-        /// <summary>
-        /// 2021.08.04 D.Honjyou
-        /// キャンバスのサイズが変更されたとき
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void imgCharaSrc_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            charaInkCanvas.Height = e.NewSize.Height;
-            charaInkCanvas.Width = e.NewSize.Width;
-        }
 
         /// <summary>
         /// 2021.08.04 D.Honjyou
@@ -241,10 +243,14 @@ namespace CharacomEx
             if (charaInkCanvas == null) return;
             lblScale.Text = ImageRate.Value + "%";
 
-            charaInkCanvas.Height *= ImageRate.Value * 0.01;
-            charaInkCanvas.Width *= ImageRate.Value * 0.01;
-            //System.Diagnostics.Debug.WriteLine($"Canvas h={charaInkCanvas.Height},w={charaInkCanvas.Width}   Img h={imgCharaSrc.Height}, w={imgCharaSrc.Width}.");
 
+            int Scale;
+            string s = ImageRate.Value.ToString();
+            Console.WriteLine($"スケールが変更されました。Scale = {s}");
+            Scale = int.Parse(s);
+            Matrix m0 = new Matrix();
+            m0.Scale(Scale * 0.01, Scale * 0.01);//元のサイズとの比
+            matrix.Matrix = m0;
         }
 
         /// <summary>
@@ -312,7 +318,7 @@ namespace CharacomEx
                     myLine1.X1 = (canvas.Width / 8) * i;
                     myLine1.X2 = (canvas.Width / 8) * i;
                     myLine1.Y1 = 0;
-                    myLine1.Y2 = canvas.Height;
+                    myLine1.Y2 = canvas.ActualHeight;
                     myLine1.HorizontalAlignment = HorizontalAlignment.Left;
                     myLine1.VerticalAlignment = VerticalAlignment.Center;
                     myLine1.StrokeThickness = 1;
@@ -393,6 +399,25 @@ namespace CharacomEx
         {
             var Oya = (MainWindow)Application.Current.MainWindow;
 
+            BitmapSource src_bmp;
+            src_bmp = (BitmapSource)charaSrcImage;
+            
+            //画像処理が終わったら、処理後ウィンドウに表示（charaProcCanvas)
+            //2021.08.08 D.Honjyou
+            //CachedBitmapになってしまったのを回避するためいったんバイナリに変換
+            byte[] tmp = Oya.ToBinary(src_bmp);
+            BitmapSource srcBmp = Oya.ToBitmapSource(tmp);
+            ImageBrush imageBrush = new ImageBrush();
+            imageBrush.Stretch = Stretch.None;
+            imageBrush.ImageSource = (BitmapImage)srcBmp;
+
+            charaInkCanvas.DataContext = src_bmp;
+            charaInkCanvas.Background = imageBrush;
+            charaInkCanvas.Width = src_bmp.Width;
+            charaInkCanvas.Height = src_bmp.Height;
+
+
+
             BitmapSource proc_bmp;
             imageEffect.GetGravityPointDouble((BitmapSource)charaSrcImage);
             proc_bmp = (BitmapSource)charaSrcImage;
@@ -402,9 +427,9 @@ namespace CharacomEx
             //画像処理が終わったら、処理後ウィンドウに表示（charaProcCanvas)
             //2021.08.08 D.Honjyou
             //CachedBitmapになってしまったのを回避するためいったんバイナリに変換
-            byte[] tmp = Oya.ToBinary(proc_bmp);
-            BitmapSource srcBmp = Oya.ToBitmapSource(tmp);
-            ImageBrush imageBrush = new ImageBrush();
+            tmp = Oya.ToBinary(proc_bmp);
+            srcBmp = Oya.ToBitmapSource(tmp);
+            imageBrush = new ImageBrush();
             imageBrush.Stretch = Stretch.None;
             imageBrush.ImageSource = (BitmapImage)srcBmp;
 
@@ -412,7 +437,7 @@ namespace CharacomEx
             charaProcCanvas.Background = imageBrush;
             charaProcCanvas.Width = proc_bmp.Width;
             charaProcCanvas.Height = proc_bmp.Height;
-            DrawWaku(null, null);
+            //DrawWaku(null, null);
 
             double rate, Aratio;
             double[] Kajyu = new double[4]; 
@@ -553,6 +578,11 @@ namespace CharacomEx
         private void InitializeChart_Click(object sender, RoutedEventArgs e)
         {
             //InitializeChart();
+        }
+
+        private void CharaTabItemWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            DrawWaku(sender, e);
         }
     }
 

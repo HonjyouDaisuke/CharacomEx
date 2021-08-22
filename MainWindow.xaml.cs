@@ -441,9 +441,12 @@ namespace CharacomEx
             BitmapSource bmp = (BitmapSource)_project.MainImages[MainImageIndex].MainImage.Source;
             // 原画像を２値化する
             BitmapSource bmp2 = imgEffect.TwoColorProc(bmp);
-            var image = new RenderTargetBitmap((int)_project.MainImages[MainImageIndex].MainImage.ActualWidth, (int)_project.MainImages[MainImageIndex].MainImage.ActualHeight, 96, 96, PixelFormats.Pbgra32);
-            image.Render(_project.MainImages[MainImageIndex].MainImage);
 
+            System.Diagnostics.Debug.WriteLine($"<---------- width = {bmp.PixelWidth} , actual= {bmp.PixelHeight}" );
+            //var image = new RenderTargetBitmap((int)_project.MainImages[MainImageIndex].MainImage.ActualWidth, (int)_project.MainImages[MainImageIndex].MainImage.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+            var image = new RenderTargetBitmap(bmp.PixelWidth, bmp.PixelHeight, 96, 96, PixelFormats.Pbgra32);
+            image.Render(_project.MainImages[MainImageIndex].MainImage);
+            
             System.Windows.Point min = new System.Windows.Point(9999.0, 9999.0);
             System.Windows.Point max = new System.Windows.Point(0.0, 0.0);
             System.Windows.Point bp = new System.Windows.Point(0, 0);
@@ -613,6 +616,7 @@ namespace CharacomEx
             ScrollViewer sv = new ScrollViewer();
             CustomInkCanvas cic = new CustomInkCanvas();
             Image img = new Image();
+            Image img2 = new Image();
 
             iTabItem.Header = _project.MainImages[MainImageIndex].MainImageName;
             img = _project.MainImages[MainImageIndex].MainImage;
@@ -629,9 +633,11 @@ namespace CharacomEx
 
             MainTabItemUserControl mtc = new MainTabItemUserControl();
 
+            img2 = img;
             mtc.Name = "MainTabItem";
             mtc.inkCanvas.StrokeCollected += new InkCanvasStrokeCollectedEventHandler(inkCanvas_StrokeCollected);
-            mtc.inkCanvas.Children.Add(img);
+            mtc.MainImage = img;
+            mtc.inkCanvas.Children.Add(img2);
             iTabItem.Content = mtc;
 
             //2021.07.31 メインタブの画像に切り出し矩形を作成
@@ -679,6 +685,8 @@ namespace CharacomEx
             imageBrush.ImageSource = (BitmapImage)srcBmp;
 
             iTabItem.Header = Header;
+            ctc.MainIndex = MainImageIndex;
+            ctc.CharaIndex = CharaImageIndex;
             ctc.CharaImageName = Header;
             ctc.CharaSrcImage = (BitmapSource)img.Source;
             ctc.charaInkCanvas.Background = imageBrush;
@@ -712,14 +720,15 @@ namespace CharacomEx
 
             sHeader = _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaImageName;
             img = _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaImage;
-            System.Diagnostics.Debug.WriteLine("  ttt---Height = " + _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaRect.Height + "  Width = " + _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaRect.Width);
-            System.Diagnostics.Debug.WriteLine($"　CharaImage[tIndex = {tIndex} : Name = {_project.MainImages[MainImageIndex].CharaImages[tIndex].CharaImageName} ]");
+            //System.Diagnostics.Debug.WriteLine("  ttt---Height = " + _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaRect.Height + "  Width = " + _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaRect.Width);
+            //System.Diagnostics.Debug.WriteLine($"　CharaImage[tIndex = {tIndex} : Name = {_project.MainImages[MainImageIndex].CharaImages[tIndex].CharaImageName} ]");
             //System.Diagnostics.Debug.WriteLine($"　CharaImage type= { img.Sourc }" );
             MakeNewCharaImageTab(sHeader, _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaImage, _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaRect);
 
             SelectTabItem(_project.MainImages[MainImageIndex].CharaImages[tIndex].CharaImageName);
             CharaImageIndex = tIndex;
             System.Diagnostics.Debug.WriteLine("インデックスを設定しました。Main = " + MainImageIndex.ToString() + " , chara = " + CharaImageIndex.ToString());
+
         }
 
         /// <summary>
@@ -735,7 +744,6 @@ namespace CharacomEx
             mc.Name = tabName;
 
             mainIndex = 0;
-            charaIndex = 0;
             foreach (MainImageClass m in _project.MainImages)
             {
                 if (m.MainImageName == tabName)
@@ -744,6 +752,7 @@ namespace CharacomEx
                     mc.MainIndex = mainIndex;
                     mc.CheckFlag = true;
                 }
+                charaIndex = 0;
                 foreach (CharaImageClass c in m.CharaImages)
                 {
                     if (c.CharaImageName == tabName)
@@ -792,8 +801,13 @@ namespace CharacomEx
                 }
                 else
                 {
-                    _charaImageIndex = mc.CharaIndex;
                     System.Diagnostics.Debug.WriteLine("CharaTab -- " + mc.Name + ": mainIndex = " + mc.MainIndex + ": charaIndex = " + mc.CharaIndex);
+
+                    _charaImageIndex = mc.CharaIndex;
+                    //切り出しパネルのバインディングを変更
+                    CharaImages.ItemsSource = _project.MainImages[mc.MainIndex].CharaImages;
+                    MainImageIndex = mc.MainIndex;
+                    
                 }
 
             }

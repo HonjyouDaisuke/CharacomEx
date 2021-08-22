@@ -20,14 +20,22 @@ namespace CharacomEx
     /// </summary>
     public partial class MainTabItemUserControl : UserControl
     {
+        private Image _mainImage;
+        public Image MainImage { get => _mainImage; set => _mainImage = value; }
+
         public MainTabItemUserControl()
         {
             InitializeComponent();
         }
-
+        
         public void ClearRectView()
         {
             inkCanvas.Children.Clear();
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.DataContext = new { MainImage = MainImage.Source };
         }
     }
 }

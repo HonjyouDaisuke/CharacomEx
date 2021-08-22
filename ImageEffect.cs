@@ -344,6 +344,10 @@ namespace CharacomEx
                         orgPixels1[(y * (int)width + x) * 4 + 1] = 255;
                         orgPixels1[(y * (int)width + x) * 4 + 2] = 255;
                     }
+                    else
+                    {
+                        orgPixels1[(y * (int)width + x) * 4 + 3] = 255;
+                    }
 
                 }
             }
