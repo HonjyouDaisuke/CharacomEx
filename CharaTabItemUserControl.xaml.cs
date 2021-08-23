@@ -44,8 +44,6 @@ namespace CharacomEx
         public int MainIndex { get => _mainIndex; set => _mainIndex = value; }
         public int CharaIndex { get => _charaIndex; set => _charaIndex = value; }
 
-        public Undomanager undomanager = new Undomanager();
-
         public CharaTabItemUserControl(BitmapSource img)
         {
             InitializeComponent();
