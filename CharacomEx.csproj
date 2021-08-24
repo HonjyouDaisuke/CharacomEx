@@ -123,6 +123,7 @@
     <Compile Include="CharaTabItemUserControl.xaml.cs">
       <DependentUpon>CharaTabItemUserControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CommandManager.cs" />
     <Compile Include="ImageEffect.cs" />
     <Compile Include="MainTabItemUserControl.xaml.cs">
       <DependentUpon>MainTabItemUserControl.xaml</DependentUpon>

@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls;
 using MathNet.Numerics.Statistics;
+using System.IO;
 
 namespace CharacomEx
 {
@@ -272,7 +273,103 @@ namespace CharacomEx
             BitmapSource outBmp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Pbgra32, null, orgPixels, stride);
             return (outBmp);
         }
-        
+
+        /// <summary>
+        /// BitmapSourceをbyte[]型へ変換
+        /// </summary>
+        /// <param name="bs"></param>
+        /// <returns></returns>
+        public byte[] ToBinary(BitmapSource img)
+        {
+            if (img == null) return null;
+
+            //BitmapSource bmp = (BitmapSource)img;
+            //img.Source = bmp;
+
+            // BitmapSourceの派生クラス「RenderTargetBitmap」で、画像を取ってくる
+            //System.Diagnostics.Debug.WriteLine("->with = " + bmp.PixelWidth.ToString() + ",Height = " + bmp.PixelHeight.ToString());
+            //System.Diagnostics.Debug.WriteLine("+>with = " + img.Width.ToString() + ",Height = " + img.Height.ToString());
+            //var canvas = new RenderTargetBitmap((int)bmp.PixelWidth, (int)bmp.PixelHeight, 96, 96, PixelFormats.Pbgra32);
+            //canvas.Render(img); // canvasに画像を描画
+
+            using (var ms = new MemoryStream())
+            {
+                var encoder = new PngBitmapEncoder();
+
+                encoder.Frames.Add(BitmapFrame.Create(img));
+                encoder.Save(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                return ms.GetBuffer();
+
+            }
+
+        }
+
+        /// <summary>
+        /// byte[]型をBitmapSourceへ変換
+        /// </summary>
+        /// <param name="byteArray"></param>
+        /// <returns></returns>
+        public BitmapSource ToBitmapSource(byte[] byteArray)
+        {
+            using (var ms = new MemoryStream(byteArray))
+            {
+                var image = new BitmapImage();
+
+                ms.Seek(0, SeekOrigin.Begin);
+                image.BeginInit();
+                //当初はアイコンのみを扱うつもりだったが様々なサイズの画像を扱うためコメントアウト
+                //image.DecodePixelHeight = 16;
+                //image.DecodePixelWidth = 16;
+
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                image.StreamSource = ms;
+                image.EndInit();
+                image.Freeze();
+
+                return image;
+            }
+        }
+
+        /// <summary>
+        /// 2021.08.25 D,Honjyou
+        /// ビットマップの比較同じならTrueをかえす。
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public bool BitmapCompare(BitmapSource a, BitmapSource b)
+        {
+            //BitmapをPbrga32に変換する
+            FormatConvertedBitmap bmp_a = new FormatConvertedBitmap(a, PixelFormats.Pbgra32, null, 0);
+            FormatConvertedBitmap bmp_b = new FormatConvertedBitmap(b, PixelFormats.Pbgra32, null, 0);
+
+            //画像サイズの配列を作る
+            int width_a = a.PixelWidth;
+            int height_a = a.PixelHeight;
+            int width_b = b.PixelWidth;
+            int height_b = b.PixelHeight;
+
+            int i;
+            byte[] pix_a = new byte[width_a * height_a * 4];
+            byte[] pix_b = new byte[width_b * height_b * 4];
+
+            //BitmapSourceから配列へコピー
+            int s_a = (width_a * bmp_a.Format.BitsPerPixel + 7) / 8;
+            int s_b = (width_b * bmp_b.Format.BitsPerPixel + 7) / 8;
+            bmp_a.CopyPixels(pix_a, s_a, 0);
+            bmp_b.CopyPixels(pix_b, s_b, 0);
+
+            bool bRet = true;
+
+            for (i = 0; i < pix_a.Length; i++)
+            {
+                if (pix_a[i] != pix_b[i]) bRet = false;
+            }
+            return bRet;
+        }
+
         /// <summary>
         /// 20201.08.08 D.Honjyou
         /// ビットマップを真っ白にする

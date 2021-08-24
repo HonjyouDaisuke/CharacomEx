@@ -17,6 +17,7 @@ using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using System.Windows.Forms.DataVisualization.Charting;
 
+
 namespace CharacomEx
 {
     /// <summary>
@@ -43,6 +44,9 @@ namespace CharacomEx
         public BitmapSource CharaSrcImage { get => charaSrcImage; set => charaSrcImage = value; }
         public int MainIndex { get => _mainIndex; set => _mainIndex = value; }
         public int CharaIndex { get => _charaIndex; set => _charaIndex = value; }
+
+        //コマンドマネージャー
+        private CommandManager undoManager = new CommandManager();
 
         public CharaTabItemUserControl(BitmapSource img)
         {
@@ -102,21 +106,20 @@ namespace CharacomEx
             drawingContext.Close();
 
             // 描画先をビットマップにする(96dpi)
-            var renderTargetBitmap = new RenderTargetBitmap(
-              (int)rect.Width, (int)rect.Height, 96d, 96d, PixelFormats.Default
-            );
+            var renderTargetBitmap = new RenderTargetBitmap((int)rect.Width, (int)rect.Height, 96d, 96d, PixelFormats.Default);
             renderTargetBitmap.Render(drawingVisual);
 
             var Oya = (MainWindow)Application.Current.MainWindow;
 
             System.Diagnostics.Debug.WriteLine($"MainWin MainIndex = {Oya.MainImageIndex} CharaIndex = {Oya.CharaImageIndex}, CharaWin main={MainIndex} chara={CharaIndex}");
-            Oya.Project.MainImages[Oya.MainImageIndex].CharaImages[Oya.CharaImageIndex].CharaImage.Source = renderTargetBitmap;
-            //Oya.Project.MainImages[MainIndex].CharaImages[CharaIndex].CharaImage.Source = renderTargetBitmap;
 
-
-            charaSrcImage = renderTargetBitmap;
+            //Undoテスト
+            //Oya.Project.MainImages[Oya.MainImageIndex].CharaImages[Oya.CharaImageIndex].CharaImage.Source = renderTargetBitmap;
+            //charaSrcImage = renderTargetBitmap;
+            DrawingCanvasCommand command = new DrawingCanvasCommand(Oya.Project.MainImages[Oya.MainImageIndex].CharaImages[Oya.CharaImageIndex].CharaImage, charaSrcImage, renderTargetBitmap, charaInkCanvas, charaProcCanvas);
+            undoManager.Action(command);
             
-            ImageProcessExe();
+            //ImageProcessExe();
             charaInkCanvas.Strokes.Clear();
             DrawWaku(null, null);
         }
@@ -577,7 +580,11 @@ namespace CharacomEx
 
         private void InitializeChart_Click(object sender, RoutedEventArgs e)
         {
-            //InitializeChart();
+            if (undoManager.CanUndo())
+            {
+                undoManager.Undo();
+                
+            }
         }
 
         private void CharaTabItemWindow_Loaded(object sender, RoutedEventArgs e)

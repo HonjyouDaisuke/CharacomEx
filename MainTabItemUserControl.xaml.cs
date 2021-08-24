@@ -31,7 +31,6 @@ namespace CharacomEx
         
         public void ClearRectView()
         {
-            int index = 0;
 
             for(int i = 0; i < inkCanvas.Children.Count; i++)
             {
