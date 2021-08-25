@@ -31,8 +31,9 @@ namespace CharacomEx
 
 		public void Action(ICommand command)
 		{
-			this.undo.Push(command);
 			command.Action();
+			this.undo.Push(command);
+			System.Diagnostics.Debug.WriteLine($"Push undo.count = {undo.Count}");
 			this.redo.Clear();
 		}
 
@@ -102,52 +103,23 @@ namespace CharacomEx
 			_nextImg = ProjectImg;
 			_nextBmp = srcBmp;
 			_nextProc = srcBmp;
+			_beforeImg = ProjectImg;
+			_beforeBmp = srcBmp;
 			
 		}
 
 
 		public void Action()
 		{
-			System.Diagnostics.Debug.WriteLine("=============================================================Action ! - DrawingCanvasCommand");
 			//Beforeを作る
-			_beforeImg = _nextImg;
-			_beforeBmp = _nextBmp.Clone();
+			//_beforeImg = _nextImg;
+			//_beforeBmp = _nextBmp;
 			
 			//描画を反映する
 			_nextImg.Source = _setBmp;
 			_nextBmp = _setBmp;
 
-			//画像処理用のビットマップを作成
-			BitmapSource proc_bmp;
-			var Oya = (MainWindow)Application.Current.MainWindow;
-
-			imageEffect.GetGravityPointDouble((BitmapSource)_nextBmp);
-			proc_bmp = (BitmapSource)_nextBmp;
-			if (Oya.MenuNomalizeCheck.IsChecked == true) proc_bmp = imageEffect.Normalize(proc_bmp, 96 + 38 + 96);
-			if (Oya.MenuCenterCheck.IsChecked == true) proc_bmp = imageEffect.MoveCenter_fromGravity(proc_bmp);
-
-			//2021.08.08 D.Honjyou
-			//CachedBitmapになってしまったのを回避するためいったんバイナリに変換
-			byte[] tmp = imageEffect.ToBinary(_nextBmp);
-			BitmapSource srcBmp = imageEffect.ToBitmapSource(tmp);
-
-			ImageBrush imageBrush = new ImageBrush();
-			imageBrush.Stretch = Stretch.None;
-			imageBrush.ImageSource = (BitmapImage)srcBmp;
-
-			_outSrcCanvas.Background = imageBrush;
-
-			//2021.08.08 D.Honjyou
-			//CachedBitmapになってしまったのを回避するためいったんバイナリに変換
-			tmp = imageEffect.ToBinary(proc_bmp);
-			srcBmp = imageEffect.ToBitmapSource(tmp);
-
-			imageBrush = new ImageBrush();
-			imageBrush.Stretch = Stretch.None;
-			imageBrush.ImageSource = (BitmapImage)srcBmp;
-
-			_outPrcCanvas.Background = imageBrush;
-
+			ViewImages();
 			System.Diagnostics.Debug.WriteLine($"Action ! - DrawingCanvasCommand {_nextBmp.Width},{_nextBmp.Height}");
 		}
 
@@ -157,6 +129,22 @@ namespace CharacomEx
 			_nextImg = _beforeImg;
 			_nextBmp = _beforeBmp;
 
+			ViewImages();
+			System.Diagnostics.Debug.WriteLine("Undo ! - DrawingCanvasCommand");
+		}
+
+		public void Redo()
+		{
+			//再反映
+			_nextImg.Source = _setBmp;
+			_nextBmp = _setBmp;
+
+			ViewImages();
+			System.Diagnostics.Debug.WriteLine("Redo ! - DrawingCanvasCommand");
+		}
+
+		public void ViewImages()
+        {
 			//画像処理用のビットマップを作成
 			BitmapSource proc_bmp;
 			var Oya = (MainWindow)Application.Current.MainWindow;
@@ -187,15 +175,6 @@ namespace CharacomEx
 			imageBrush.ImageSource = (BitmapImage)srcBmp;
 
 			_outPrcCanvas.Background = imageBrush;
-			System.Diagnostics.Debug.WriteLine("Undo ! - DrawingCanvasCommand");
-		}
-
-		public void Redo()
-		{
-			//再反映
-			_nextImg.Source = _setBmp;
-			_nextBmp = _setBmp;
-			System.Diagnostics.Debug.WriteLine("Redo ! - DrawingCanvasCommand");
 		}
 	}
 	#endregion

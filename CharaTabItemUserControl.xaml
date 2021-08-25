@@ -72,7 +72,8 @@
             </Button>
             
             <!-- テスト -->
-            <Button Content="Test" Click="InitializeChart_Click" />
+            <Button Content="Undo" Click="InitializeChart_Click" />
+            <Button Content="Redo" Click="RedoTest_click"/>
         </ToolBar>
         <Border Grid.Column="0" Grid.Row="1" Margin="10" BorderBrush="{DynamicResource MahApps.Brushes.WindowTitle}" BorderThickness="1">
             

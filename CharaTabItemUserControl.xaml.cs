@@ -116,7 +116,13 @@ namespace CharacomEx
             //Undoテスト
             //Oya.Project.MainImages[Oya.MainImageIndex].CharaImages[Oya.CharaImageIndex].CharaImage.Source = renderTargetBitmap;
             //charaSrcImage = renderTargetBitmap;
-            DrawingCanvasCommand command = new DrawingCanvasCommand(Oya.Project.MainImages[Oya.MainImageIndex].CharaImages[Oya.CharaImageIndex].CharaImage, charaSrcImage, renderTargetBitmap, charaInkCanvas, charaProcCanvas);
+
+            //DrawingCanvasCommand command = new DrawingCanvasCommand(Oya.Project.MainImages[Oya.MainImageIndex].CharaImages[Oya.CharaImageIndex].CharaImage, charaSrcImage, renderTargetBitmap, charaInkCanvas, charaProcCanvas);
+            ImageBrush i = new ImageBrush();
+            i = (ImageBrush)charaInkCanvas.Background;
+            BitmapSource b = (BitmapSource)i.ImageSource;
+
+            DrawingCanvasCommand command = new DrawingCanvasCommand(Oya.Project.MainImages[Oya.MainImageIndex].CharaImages[Oya.CharaImageIndex].CharaImage, b, renderTargetBitmap, charaInkCanvas, charaProcCanvas);
             undoManager.Action(command);
             
             //ImageProcessExe();
@@ -590,6 +596,14 @@ namespace CharacomEx
         private void CharaTabItemWindow_Loaded(object sender, RoutedEventArgs e)
         {
             DrawWaku(sender, e);
+        }
+
+        private void RedoTest_click(object sender, RoutedEventArgs e)
+        {
+            if (undoManager.CanRedo())
+            {
+                undoManager.Redo();
+            } 
         }
     }
 
