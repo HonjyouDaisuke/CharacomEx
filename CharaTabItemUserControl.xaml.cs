@@ -121,10 +121,12 @@ namespace CharacomEx
             ImageBrush i = new ImageBrush();
             i = (ImageBrush)charaInkCanvas.Background;
             BitmapSource b = (BitmapSource)i.ImageSource;
+            //Image img = Oya.Project.MainImages[Oya.MainImageIndex].CharaImages[Oya.CharaImageIndex].CharaImage;
 
             DrawingCanvasCommand command = new DrawingCanvasCommand(Oya.Project.MainImages[Oya.MainImageIndex].CharaImages[Oya.CharaImageIndex].CharaImage, b, renderTargetBitmap, charaInkCanvas, charaProcCanvas);
             undoManager.Action(command);
-            
+            CheckUndoRedoBtn();
+
             //ImageProcessExe();
             charaInkCanvas.Strokes.Clear();
             DrawWaku(null, null);
@@ -584,26 +586,66 @@ namespace CharacomEx
             }
         }
 
-        private void InitializeChart_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// 2021.08.26 D.Honjyou
+        /// Undoボタンの動作
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void UndoBtn_Click(object sender, RoutedEventArgs e)
         {
             if (undoManager.CanUndo())
             {
                 undoManager.Undo();
-                
+                CheckUndoRedoBtn();
             }
         }
 
         private void CharaTabItemWindow_Loaded(object sender, RoutedEventArgs e)
         {
             DrawWaku(sender, e);
+            CheckUndoRedoBtn();
         }
 
-        private void RedoTest_click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// 2021.08.26 D.Honjyou
+        /// Redoボタンの動作
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void RedoBtn_Click(object sender, RoutedEventArgs e)
         {
             if (undoManager.CanRedo())
             {
                 undoManager.Redo();
+                CheckUndoRedoBtn();
             } 
+        }
+
+        /// <summary>
+        /// 2021.08.26 D.Honjyou
+        /// Undo Redo の確認をしてボタンの共同を変更
+        /// Undo Redoができる状態であればボタンを有効にし、できない状態であれば無効にする
+        /// </summary>
+        private void CheckUndoRedoBtn()
+        {
+            if (undoManager.CanUndo())
+            {
+                UndoBtn.IsEnabled = true;
+            }
+            else
+            {
+                UndoBtn.IsEnabled = false;
+            }
+
+            if (undoManager.CanRedo())
+            {
+                RedoBtn.IsEnabled = true;
+            }
+            else
+            {
+                RedoBtn.IsEnabled = false;
+            }
         }
     }
 

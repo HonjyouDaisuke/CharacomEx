@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reflection;
 using System.Drawing;
 using System.Web;
 using System.Net;
@@ -63,6 +64,8 @@ namespace CharacomEx
 
             MainImageIndex = 0;
             _charaImageIndex = 0;
+
+            StartLog_Send();
 
             LoadNotifications();
             GetNotifications();
@@ -1026,12 +1029,12 @@ namespace CharacomEx
             //現在の矩形のチェック（名前が同じかどうか)
             if (_project.MainImages[MainImageIndex].CharaImages[CharaImageIndex].CharaImageName == ImageName)
             {
-                System.Diagnostics.Debug.WriteLine("削除するぜ！！" + ImageName);
+                System.Diagnostics.Debug.WriteLine($"削除するぜ！！------Index={MainImageIndex}-{CharaImageIndex}  --  {_project.MainImages[MainImageIndex].MainImageName},{ImageName}");
                 _project.MainImages[MainImageIndex].CharaImages.RemoveAt(CharaImageIndex);
-                mainTab.Items.RemoveAt(mainTab.SelectedIndex);
                 //メイン画像の矩形を一度クリアする
                 foreach (TabItem t in mainTab.Items)
                 {
+                    System.Diagnostics.Debug.WriteLine($"TabItem:MainImageName === [{t.Header}],[{_project.MainImages[MainImageIndex].MainImageName}]");
                     if (t.Header.ToString() == _project.MainImages[MainImageIndex].MainImageName)
                     {
                         System.Diagnostics.Debug.WriteLine("main！===" + _project.MainImages[MainImageIndex].MainImageName);
@@ -1040,24 +1043,18 @@ namespace CharacomEx
                             if (cc.Name == "MainTabItem")
                             {
                                 MainTabItemUserControl mtc = (MainTabItemUserControl)cc;
-                                //矩形のクリア
-                                //mtc.ClearRectView();
+                                //↓これはいらないかも2021.08.28 D.Honjyou
                                 mtc.Name = "MainTabItem";
-                                mtc.RedrawRectangle();
-                                //画像の再描画
-                                //mtc.inkCanvas.Children.Add(_project.MainImages[MainImageIndex].MainImage);
                                 //矩形の再描画
-                                //2021.07.31 メインタブの画像に切り出し矩形を作成
-                                //foreach (CharaImageClass c in _project.MainImages[MainImageIndex].CharaImages)
-                                //{
-                                //    inkCanvas_DrawRectangle(mtc.inkCanvas, c.CharaRect);
-                                //}
-
+                                mtc.RedrawRectangle();
+                                
                             }
 
                         }
                     }
                 }
+                mainTab.Items.RemoveAt(mainTab.SelectedIndex);
+
             }
             else
             {
@@ -1076,11 +1073,11 @@ namespace CharacomEx
         private void GridLineCheck_Changed(object sender, RoutedEventArgs e)
         {
             if (mainTab == null) return;
-            MainOrCharaClass mc = new MainOrCharaClass();
-            foreach(TabItem t in mainTab.Items)
+            
+            foreach (TabItem t in mainTab.Items)
             {
-                mc = checkTabName(t.Header.ToString());
-                if(mc.MainOrChara == 2)
+                MainOrCharaClass mc = checkTabName(t.Header.ToString());
+                if (mc.MainOrChara == 2)
                 {
                     ((CharaTabItemUserControl)t.Content).DrawWaku(sender, e);
                 }
@@ -1094,13 +1091,13 @@ namespace CharacomEx
         /// <param name="e"></param>
         private void MenuItemVersionInfo(object sender, RoutedEventArgs e)
         {
-            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            System.Reflection.AssemblyName asmName = assembly.GetName();
-            System.Version version = asmName.Version;
-            System.Reflection.AssemblyTitleAttribute asmTitle = (System.Reflection.AssemblyTitleAttribute)Attribute.GetCustomAttribute(assembly,
-                                                                    typeof(System.Reflection.AssemblyTitleAttribute));
-            System.Reflection.AssemblyCopyrightAttribute asmCopyright = (System.Reflection.AssemblyCopyrightAttribute)Attribute.GetCustomAttribute(assembly,
-                                                                typeof(System.Reflection.AssemblyCopyrightAttribute));
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            AssemblyName asmName = assembly.GetName();
+            Version version = asmName.Version;
+            //_ = (AssemblyTitleAttribute)Attribute.GetCustomAttribute(assembly,
+            //                                  typeof(AssemblyTitleAttribute));
+            AssemblyCopyrightAttribute asmCopyright = (AssemblyCopyrightAttribute)Attribute.GetCustomAttribute(assembly,
+                                                      typeof(AssemblyCopyrightAttribute));
 
             var build = version.Build;
             var revision = version.Revision;
@@ -1111,6 +1108,78 @@ namespace CharacomEx
             string strBuild = "ビルド日時 @" + baseDate.AddDays(build).AddSeconds(revision * 2);
             MsgBoxShow($"バージョン情報\n\n{strVersion}\n{strBuild}\n\n{asmCopyright.Copyright}");
         }
+
+        #region PC名、IPアドレス取得
+        string GetIPAddress()
+        {
+            string ipaddress = Dns.GetHostName();
+            IPHostEntry ipentry = Dns.GetHostEntry(Dns.GetHostName());
+
+            foreach (IPAddress ip in ipentry.AddressList)
+            {
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    ipaddress += "(" + ip.ToString() + ")";
+            }
+
+            return ipaddress;
+        }
+        #endregion
+        #region 起動ログ送信
+        /// <summary>
+        /// 2021.08.28 D.Honjyou
+        /// スタートログを送信する
+        /// </summary>
+        void StartLog_Send()
+        {
+            const string url = @"http://characom.sakuraweb.com/CharacomEX/insertLog.php";
+
+            ServicePointManager.Expect100Continue = false;
+            WebClient wc = new WebClient();
+            //NameValueCollectionの作成
+            System.Collections.Specialized.NameValueCollection ps =
+                new System.Collections.Specialized.NameValueCollection();
+            //送信するデータ（フィールド名と値の組み合わせ）を追加
+            ps.Add("StartDateTime", DateTime.Now.ToString());
+            ps.Add("IPAddr", GetIPAddress());
+            /**
+            string user_name = "misaki";
+            if (File.Exists("user.ini"))
+            {
+                StreamReader sr = new StreamReader("user.ini");
+                user_name = sr.ReadToEnd();
+                sr.Close();
+            }
+
+            ps.Add("UserID", user_name);
+            **/
+
+            //ビルド情報
+            Assembly asm = Assembly.GetExecutingAssembly();
+            Version ver = asm.GetName().Version;
+            DateTime StartDate, StartTime;
+            StartDate = DateTime.Parse("2000/01/01");
+            StartTime = DateTime.Parse("0:0");
+            string lblBuild = StartDate.AddDays(ver.Build).ToShortDateString() + "@" + StartTime.AddSeconds((double)ver.Revision * 2).ToShortTimeString();
+
+            ps.Add("VersionInfo", ver.ToString());
+            ps.Add("BuildDate", lblBuild);
+            try
+            {
+                //データを送信し、また受信する
+                byte[] resData = wc.UploadValues(url, ps);
+                //受信したデータを表示する
+                //string resText = System.Text.Encoding.UTF8.GetString(resData);
+                //Console.WriteLine($"----StartLog()---{resText}");
+            }
+            catch
+            {
+                //Network = false;
+            }
+            wc.Dispose();
+
+            
+        }
+        #endregion
 
         /// <summary>
         /// 通知ウィンドウの表示

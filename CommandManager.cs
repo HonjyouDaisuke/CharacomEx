@@ -112,8 +112,8 @@ namespace CharacomEx
 		public void Action()
 		{
 			//Beforeを作る
-			//_beforeImg = _nextImg;
-			//_beforeBmp = _nextBmp;
+			_beforeImg = _nextImg;
+			_beforeBmp = _nextBmp;
 			
 			//描画を反映する
 			_nextImg.Source = _setBmp;
@@ -126,7 +126,7 @@ namespace CharacomEx
 		public void Undo()
 		{
 			//戻す
-			_nextImg = _beforeImg;
+			_nextImg.Source = _beforeBmp;
 			_nextBmp = _beforeBmp;
 
 			ViewImages();
@@ -149,11 +149,12 @@ namespace CharacomEx
 			BitmapSource proc_bmp;
 			var Oya = (MainWindow)Application.Current.MainWindow;
 
-			imageEffect.GetGravityPointDouble((BitmapSource)_nextBmp);
-			proc_bmp = (BitmapSource)_nextBmp;
+			imageEffect.GetGravityPointDouble(_nextBmp);
+			proc_bmp = _nextBmp;
 			if (Oya.MenuNomalizeCheck.IsChecked == true) proc_bmp = imageEffect.Normalize(proc_bmp, 96 + 38 + 96);
 			if (Oya.MenuCenterCheck.IsChecked == true) proc_bmp = imageEffect.MoveCenter_fromGravity(proc_bmp);
 
+			//画像描画エリアの表示
 			//2021.08.08 D.Honjyou
 			//CachedBitmapになってしまったのを回避するためいったんバイナリに変換
 			byte[] tmp = imageEffect.ToBinary(_nextBmp);
@@ -165,6 +166,7 @@ namespace CharacomEx
 
 			_outSrcCanvas.Background = imageBrush;
 
+			//画像処理エリアの表示
 			//2021.08.08 D.Honjyou
 			//CachedBitmapになってしまったのを回避するためいったんバイナリに変換
 			tmp = imageEffect.ToBinary(proc_bmp);

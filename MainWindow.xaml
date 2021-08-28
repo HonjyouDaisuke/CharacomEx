@@ -138,11 +138,13 @@
                 </MenuItem>
 
             </MenuItem>
+            <!--
             <MenuItem Header="編集">
                 <MenuItem Header="コピー" />
                 <MenuItem Header="切り取り" />
                 <MenuItem Header="貼り付け" />
             </MenuItem>
+            -->
             <MenuItem Header="設定">
                 <MenuItem Header="ダークモード" Click="MenuItemDarkMode_Click" />
                 <MenuItem Header="ライトモード" Click="MenuItemLightMode_Click" />

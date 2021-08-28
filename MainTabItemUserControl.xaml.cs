@@ -195,6 +195,7 @@ namespace CharacomEx
             //2021.07.31 メインタブの画像に切り出し矩形を作成
             foreach (CharaImageClass c in Oya.Project.MainImages[Oya.MainImageIndex].CharaImages)
             {
+                System.Diagnostics.Debug.WriteLine($"RedrawRect -- Chara:{c.CharaImageName}...");
                 inkCanvas_DrawRectangle(c.CharaRect);
             }
 

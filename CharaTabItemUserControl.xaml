@@ -36,6 +36,15 @@
             </ToggleButton>
 
             <Separator />
+            
+            <!-- Undo Redo -->
+            <Button x:Name="UndoBtn" Click="UndoBtn_Click">
+                <icon:PackIconJamIcons Kind="Undo"  Height="32" Width="32"/>
+            </Button>
+            <Button x:Name="RedoBtn" Click="RedoBtn_Click">
+                <icon:PackIconJamIcons Kind="Redo" Height="32" Width="32"/>
+            </Button>
+            <Separator />
 
             <!-- 太さ選択 -->
             <ComboBox x:Name="PenSizeCombo" Text="細い" Height="32" Width="100" SelectionChanged="PenSizeCombo_SelectionChanged">
@@ -72,8 +81,7 @@
             </Button>
             
             <!-- テスト -->
-            <Button Content="Undo" Click="InitializeChart_Click" />
-            <Button Content="Redo" Click="RedoTest_click"/>
+            
         </ToolBar>
         <Border Grid.Column="0" Grid.Row="1" Margin="10" BorderBrush="{DynamicResource MahApps.Brushes.WindowTitle}" BorderThickness="1">
             
