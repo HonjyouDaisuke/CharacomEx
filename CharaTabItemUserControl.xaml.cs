@@ -432,7 +432,9 @@ namespace CharacomEx
             BitmapSource proc_bmp;
             imageEffect.GetGravityPointDouble((BitmapSource)charaSrcImage);
             proc_bmp = (BitmapSource)charaSrcImage;
-            if(Oya.MenuNomalizeCheck.IsChecked == true) proc_bmp = imageEffect.Normalize(proc_bmp, 96+38+96);
+            //2021.08.31 D.Honjyou 大きさ変換テスト
+            //if (Oya.MenuNomalizeCheck.IsChecked == true) proc_bmp = imageEffect.Normalize(proc_bmp, 96 + 38 + 96);
+            if (Oya.MenuNomalizeCheck.IsChecked == true) proc_bmp = imageEffect.Normalize2(proc_bmp, 320, 320);
             if(Oya.MenuCenterCheck.IsChecked == true) proc_bmp = imageEffect.MoveCenter_fromGravity(proc_bmp);
 
             //画像処理が終わったら、処理後ウィンドウに表示（charaProcCanvas)

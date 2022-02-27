@@ -8,7 +8,10 @@
              d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
     <Grid>
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <local:CustomInkCanvas x:Name="inkCanvas"  Cursor="Pen" StrokeCollected="inkCanvas_StrokeCollected">
+            <local:CustomInkCanvas x:Name="inkCanvas"  
+                                   Cursor="Pen" 
+                                   ForceCursor="True"
+                                   StrokeCollected="inkCanvas_StrokeCollected">
                 <Image x:Name="ImageDoc1" Stretch="Fill" Source="{Binding MainImage}" Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelWidth}" Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelHeight}"/>
             </local:CustomInkCanvas>
         </ScrollViewer>

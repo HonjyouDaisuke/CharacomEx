@@ -105,7 +105,7 @@
                                    Margin="0,0,0,0"
                                    Background="Blue"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   StrokeCollected="charaInkCanvas_StrokeCollected">
+                                   StrokeCollected="charaInkCanvas_StrokeCollected" Cursor="Pen" ForceCursor="True">
                             <InkCanvas.RenderTransform>
                                 <MatrixTransform x:Name="matrix" />
                             </InkCanvas.RenderTransform>

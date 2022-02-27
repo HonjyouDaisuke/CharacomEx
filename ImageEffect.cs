@@ -8,6 +8,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Controls;
 using MathNet.Numerics.Statistics;
 using System.IO;
+using System.Windows;
 
 namespace CharacomEx
 {
@@ -943,6 +944,93 @@ namespace CharacomEx
         }
         #endregion
 
+        public BitmapSource CopyToWhite(BitmapSource src, BitmapSource inputBmp)
+        {
+            int i, j;
+            int x1, x2, y1, y2;
+            double Aratio;
+            //BitmapをPbrga32に変換する
+            FormatConvertedBitmap Bitmap1 = new FormatConvertedBitmap(src, PixelFormats.Pbgra32, null, 0);
+            FormatConvertedBitmap Bitmap2 = new FormatConvertedBitmap(inputBmp, PixelFormats.Pbgra32, null, 0);
+
+            //画像サイズの配列を作る
+            int width1 = src.PixelWidth;
+            int height1 = src.PixelHeight;
+            int width2 = inputBmp.PixelWidth;
+            int height2 = inputBmp.PixelHeight;
+            
+            byte r, g, b, a;
+            Color c;
+            byte[] Pixels1 = new byte[width1 * height1 * 4];
+            byte[] Pixels2 = new byte[width2 * height2 * 4];
+            //BitmapSourceから配列へコピー
+            int stride1 = (width1 * src.Format.BitsPerPixel + 7) / 8;
+            int stride2 = (width2 * inputBmp.Format.BitsPerPixel + 7) / 8;
+            src.CopyPixels(Pixels1, stride1, 0);
+            inputBmp.CopyPixels(Pixels2, stride2, 0);
+
+            for (j = 1; j < height1; j++)
+            {
+                for (i = 1; i < width1; i++)
+                {
+                    if(height2 > j && width2 > i)
+                    {
+                        Pixels1[(j * width1 + i) * 4 + 0] = Pixels2[(j * width2 + i) * 4 + 0];
+                        Pixels1[(j * width1 + i) * 4 + 1] = Pixels2[(j * width2 + i) * 4 + 1];
+                        Pixels1[(j * width1 + i) * 4 + 2] = Pixels2[(j * width2 + i) * 4 + 2];
+                        Pixels1[(j * width1 + i) * 4 + 3] = Pixels2[(j * width2 + i) * 4 + 3];
+                    }
+                    else
+                    {
+                        Pixels1[(j * width1 + i) * 4 + 0] = 255;
+                        Pixels1[(j * width1 + i) * 4 + 1] = 255;
+                        Pixels1[(j * width1 + i) * 4 + 2] = 255;
+                        Pixels1[(j * width1 + i) * 4 + 3] = 255;
+                    }
+                    
+                    
+                }
+            }
+
+
+            //BitmapSourceに再変換
+            BitmapSource outBmp = BitmapSource.Create(width1, height1, 96, 96, PixelFormats.Pbgra32, null, Pixels1, stride1);
+            return (outBmp);
+        }
+        #region 大きさ正規化その２
+        public BitmapSource Normalize2(BitmapSource src, int outWidth, int outHeight)
+        {
+            double aratio = GetAspectRatio(src);
+            double scale;
+
+            if(aratio < 0.0)
+            {
+                scale = (double)(outHeight / src.Height);
+            }
+            else
+            {
+                scale = (double)(outWidth / src.Width);
+            }
+
+            var transformedBitmap = new TransformedBitmap(src, new ScaleTransform(scale, scale));
+
+            PixelFormat pf = PixelFormats.Bgr32;
+            int rawStride = (outWidth * pf.BitsPerPixel + 7) / 8;
+            byte[] rawImage = new byte[rawStride * outHeight];
+
+            // Initialize the image with data.
+            Random value = new Random();
+            value.NextBytes(rawImage);
+
+            // Create a BitmapSource.
+            BitmapSource outbmp = BitmapSource.Create(outWidth, outHeight, 96, 96, pf, null, rawImage, rawStride);
+            outbmp = CopyToWhite(outbmp, transformedBitmap);
+            //CroppedBitmap cb = new CroppedBitmap(transformedBitmap, new Int32Rect(0, 0, outWidth, outHeight));
+            return (BitmapSource)outbmp;
+
+        }
+        #endregion
+
         #region 大きさの正規化
         /// <summary>
         /// 2021.08.08 D.Honjyou
@@ -975,8 +1063,8 @@ namespace CharacomEx
             
             
             //画像サイズの配列を作る
-            int width = bitmap.PixelWidth;
-            int height = bitmap.PixelHeight;
+            long width = bitmap.PixelWidth;
+            long height = bitmap.PixelHeight;
             int i, j, x, y;
             byte[] orgPixels = new byte[width * height * 4];
             byte[] tmpPixels = new byte[321 * 321 * 4];
@@ -984,15 +1072,16 @@ namespace CharacomEx
             byte[] outPixels = new byte[321 * 321 * 4];
             int width2, height2;
             //BitmapSourceから配列へコピー
-            int stride = (width * bitmap.Format.BitsPerPixel + 7) / 8;
-            int stride2 = (320 * bitmap.Format.BitsPerPixel + 7) / 8;
-            bitmap.CopyPixels(orgPixels, stride, 0);
+            long stride = (width * bitmap.Format.BitsPerPixel + 7) / 8;
+            long stride2 = (320 * bitmap.Format.BitsPerPixel + 7) / 8;
+            System.Diagnostics.Debug.WriteLine($"long = {stride} int = {(int)stride}");
+            bitmap.CopyPixels(orgPixels, (int)stride, 0);
 
             //実験
-            bitmap.CopyPixels(tmpPixels, stride2, 0);
-            bitmap.CopyPixels(srctmpPixels, stride2, 0);
-            BitmapSource ttt = BitmapSource.Create(320, 320, 96, 96, PixelFormats.Pbgra32, null, tmpPixels, stride2);
-            BitmapSource src_ttt = BitmapSource.Create(320, 320, 96, 96, PixelFormats.Pbgra32, null, srctmpPixels, stride2);
+            bitmap.CopyPixels(tmpPixels, (int)stride2, 0);
+            bitmap.CopyPixels(srctmpPixels, (int)stride2, 0);
+            BitmapSource ttt = BitmapSource.Create(320, 320, 96, 96, PixelFormats.Pbgra32, null, tmpPixels, (int)stride2);
+            BitmapSource src_ttt = BitmapSource.Create(320, 320, 96, 96, PixelFormats.Pbgra32, null, srctmpPixels, (int)stride2);
             System.Diagnostics.Debug.WriteLine($"WhiteCanvas = {ttt.Width} * {ttt.Height} : r={tmpPixels[256800 + 0]} g={tmpPixels[256800 + 1]} b={tmpPixels[256800 + 2]} a={tmpPixels[256800 + 3 ]}");
             ttt = MoveCenter_fromGravity(ttt);
             ttt = TwoColorProc(ttt);
@@ -1017,8 +1106,8 @@ namespace CharacomEx
             RRave = r_ave / R;
 
 
-            ttt.CopyPixels(tmpPixels, stride2, 0);
-            src_ttt.CopyPixels(srctmpPixels, stride2, 0);
+            ttt.CopyPixels(tmpPixels, (int)stride2, 0);
+            src_ttt.CopyPixels(srctmpPixels, (int)stride2, 0);
             for (j = 0; j < height2; j++)
             {
                 for (i = 0; i < width2; i++)
@@ -1057,7 +1146,7 @@ namespace CharacomEx
             }
 
             //BitmapSourceに再変換
-            BitmapSource outBmp = BitmapSource.Create(width2, height2, 96, 96, PixelFormats.Pbgra32, null, outPixels, stride2);
+            BitmapSource outBmp = BitmapSource.Create(width2, height2, 96, 96, PixelFormats.Pbgra32, null, outPixels, (int)stride2);
             //BitmapSource outBmp = BitmapSource.Create(width2, height2, 96, 96, PixelFormats.Pbgra32, null, tmpPixels, stride2);
             return (outBmp);
         }
@@ -1067,7 +1156,7 @@ namespace CharacomEx
         private byte[,] GetArrayFromBmp(BitmapSource bmp)
         {
             int i, j;
-            byte[,] output = new byte[(int)bmp.Height, (int)bmp.Height];
+            byte[,] output = new byte[(int)bmp.Height, (int)bmp.Width];
             //BitmapをPbrga32に変換する
             FormatConvertedBitmap bitmap = new FormatConvertedBitmap(bmp, PixelFormats.Pbgra32, null, 0);
 
@@ -1113,9 +1202,9 @@ namespace CharacomEx
 
             for (k = 0; k < 16; k++)
             {
-                for (j = 0; j < w; j++)
+                for (j = 0; j < h; j++)
                 {
-                    for (i = 0; i < h; i++)
+                    for (i = 0; i < w; i++)
                     {
                         data2[k, j, i] = 0;
                     }
@@ -1324,14 +1413,14 @@ namespace CharacomEx
             {
                 for (i = w + 1; i > 0; i--)
                 {
-                    if (dat3[i, j] == 0 && dat3[i - 1, j] == 1)
+                    if (dat3[j, i] == 0 && dat3[j, i - 1] == 1)
                     {
-                        dat3[i - 1, j] = 7;
+                        dat3[j, i - 1] = 7;
                         tuiseki(dat3, data2, ap, bp, j, i - 1, n, 2);
                     }
-                    if (dat3[i, j] == 1 && dat3[i - 1, j] == 0)
+                    if (dat3[j, i] == 1 && dat3[j, i - 1] == 0)
                     {
-                        dat3[i, j] = 7;
+                        dat3[j, i] = 7;
                         tuiseki(dat3, data2, ap, bp, j, i, n, 6);
                     }
                 }
@@ -1452,9 +1541,9 @@ namespace CharacomEx
         public void GetKajyu(BitmapSource bmp, double[] outDat)
         {
             int j, m, n;
-            byte[,] data1 = new byte[(int)bmp.Height, (int)bmp.Height];
-            byte[,] dat3 = new byte[(int)bmp.Height + 2, (int)bmp.Height + 2];
-            byte[,,] data2 = new byte[16, (int)bmp.Width, (int)bmp.Height];
+            byte[,] data1 = new byte[(int)bmp.Height, (int)bmp.Width];
+            byte[,] dat3 = new byte[(int)bmp.Height + 2, (int)bmp.Width + 2];
+            byte[,,] data2 = new byte[16, (int)bmp.Height, (int)bmp.Width];
             byte[,,] data3 = new byte[16, 16, 16];
             double[,,] data4 = new double[16, 8, 8];
             double[,,] data5 = new double[8, 8, 8];

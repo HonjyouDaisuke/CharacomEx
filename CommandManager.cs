@@ -151,7 +151,8 @@ namespace CharacomEx
 
 			imageEffect.GetGravityPointDouble(_nextBmp);
 			proc_bmp = _nextBmp;
-			if (Oya.MenuNomalizeCheck.IsChecked == true) proc_bmp = imageEffect.Normalize(proc_bmp, 96 + 38 + 96);
+			if (Oya.MenuNomalizeCheck.IsChecked == true) proc_bmp = imageEffect.Normalize2(proc_bmp, 320, 320);
+			//if (Oya.MenuNomalizeCheck.IsChecked == true) proc_bmp = imageEffect.Normalize(proc_bmp, 96 + 38 + 96);
 			if (Oya.MenuCenterCheck.IsChecked == true) proc_bmp = imageEffect.MoveCenter_fromGravity(proc_bmp);
 
 			//画像描画エリアの表示
