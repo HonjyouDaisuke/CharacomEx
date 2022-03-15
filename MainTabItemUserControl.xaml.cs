@@ -122,20 +122,67 @@ namespace CharacomEx
 
             var Oya = (MainWindow)Application.Current.MainWindow;
 
+           
 
             //切り出した矩形をメイン画像に追加
             //勝手に表示されるように作成
             CharaImageClass charaImage = new CharaImageClass();
-            charaImage.CharaImageTitle = (Oya.Project.MainImages[Oya.MainImageIndex]).MainImageTitle + "-" + (Oya.Project.MainImages[Oya.MainImageIndex]).CharaImages.Count.ToString();
+            charaImage.CharaImageTitle = Oya.GetCharaName() + "-" + Oya.Project.MainImages[Oya.MainImageIndex].MainImageTitle + "-" + (GetNumOfChara(Oya.Project.MainImages[Oya.MainImageIndex], Oya.GetCharaName()) + 1).ToString("00");
             charaImage.CharaImageName = charaImage.CharaImageTitle;
             charaImage.CharaRect = rect;
-            charaImage.CharaImage.Source = bmp;
-
+            charaImage.CharaImage.Source = imgEffect.Normalize2(bmp, 160, 160);
+            System.Diagnostics.Debug.WriteLine($"メニューの個別文字名 = {Oya.GetCharaName()}, 文字の個数={GetNumOfChara(Oya.Project.MainImages[Oya.MainImageIndex], Oya.GetCharaName())}");
             System.Diagnostics.Debug.WriteLine(" ??? Height = " + charaImage.CharaRect.Height + "  Width = " + charaImage.CharaRect.Width);
 
             (Oya.Project.MainImages[Oya.MainImageIndex]).CharaImages.Add(charaImage);
 
         }
+
+        /// <summary>
+        /// 文字列の末尾から指定した長さの文字列を取得する
+        /// </summary>
+        /// <param name="str">文字列</param>
+        /// <param name="len">長さ</param>
+        /// <returns>取得した文字列</returns>
+        public static string Right(string str, int len)
+        {
+            if (len < 0)
+            {
+                throw new ArgumentException("引数'len'は0以上でなければなりません。");
+            }
+            if (str == null)
+            {
+                return "";
+            }
+            if (str.Length <= len)
+            {
+                return str;
+            }
+            return str.Substring(str.Length - len, len);
+        }
+
+        /// <summary>
+        /// 2022.03.15 D.Honjyou
+        /// プロジェクト内の個別文字を探す
+        /// </summary>
+        /// <param name="charaName">CharactorName</param>
+        private int GetNumOfChara(MainImageClass m, string charaName)
+        {
+            int count = 0;
+
+            foreach(CharaImageClass c in m.CharaImages)
+            {
+                if(c.CharaImageTitle.Substring(0,1) == charaName)
+                {
+                    if (count < int.Parse(Right(c.CharaImageTitle, 2)))
+                    {
+                        count = int.Parse(Right(c.CharaImageTitle, 2));
+                    }
+                }
+            }
+            return count;
+        }
+
         /// <summary>
         /// 2021.07.29 D.Honjyou
         /// 赤い矩形を描く

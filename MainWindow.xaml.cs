@@ -443,6 +443,22 @@ namespace CharacomEx
         }
 
         /// <summary>
+        /// GetCharaName
+        /// 2022.03.15 D.Honjyou
+        /// メニューの個別文字名を取得
+        /// </summary>
+        public string GetCharaName()
+        {
+            string sRet;
+
+            sRet = CharaName.Text;
+            if(sRet == "")
+            {
+                sRet = "無題";
+            }
+            return sRet;
+        }
+        /// <summary>
         /// SelectTabItem
         /// 2021.07.25 D.Honjyou
         /// タブ名を検索して、見つかったタブを選択状態にする。
