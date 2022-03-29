@@ -23,6 +23,7 @@ namespace CharacomEx
         private Image _mainImage;
         public Image MainImage { get => _mainImage; set => _mainImage = value; }
         private ImageEffect imgEffect = new ImageEffect();
+        private double raito = 1.0;
 
         public MainTabItemUserControl()
         {
@@ -53,11 +54,13 @@ namespace CharacomEx
 
         private void inkCanvas_StrokeCollected(object sender, InkCanvasStrokeCollectedEventArgs e)
         {
-           
+            var Oya = (MainWindow)Application.Current.MainWindow;
+
             // 元になる画像を画面から読み込む
             BitmapSource bmp = (BitmapSource)MainImage.Source;
             // 原画像を２値化する
-            BitmapSource bmp2 = imgEffect.TwoColorProc(bmp);
+            System.Diagnostics.Debug.WriteLine($"------閾値：{(int)Oya.SliderT.Value}");
+            BitmapSource bmp2 = imgEffect.TwoColorProc(bmp, (int)Oya.SliderT.Value);
 
             System.Diagnostics.Debug.WriteLine($"<---------- width = {bmp.PixelWidth} , actual= {bmp.PixelHeight}");
             //var image = new RenderTargetBitmap((int)_project.MainImages[MainImageIndex].MainImage.ActualWidth, (int)_project.MainImages[MainImageIndex].MainImage.ActualHeight, 96, 96, PixelFormats.Pbgra32);
@@ -120,18 +123,23 @@ namespace CharacomEx
 
             inkCanvas_DrawRectangle(rect);
 
-            var Oya = (MainWindow)Application.Current.MainWindow;
-
-           
+            
+            //2022.03.27 D.Honjyou
+            //切り出した画像の保存サイズをメニューから引用
+            int SaveSize = 0;
+            if (Oya.SaveSizeS.IsChecked) SaveSize = 160;
+            if (Oya.SaveSizeM.IsChecked) SaveSize = 320;
+            if (Oya.SaveSizeL.IsChecked) SaveSize = 480;
+            if (Oya.SaveSizeXL.IsChecked) SaveSize = 640;
 
             //切り出した矩形をメイン画像に追加
             //勝手に表示されるように作成
             CharaImageClass charaImage = new CharaImageClass();
-            charaImage.CharaImageTitle = Oya.GetCharaName() + "-" + Oya.Project.MainImages[Oya.MainImageIndex].MainImageTitle + "-" + (GetNumOfChara(Oya.Project.MainImages[Oya.MainImageIndex], Oya.GetCharaName()) + 1).ToString("00");
+            charaImage.CharaImageTitle = Oya.GetCharaName() + "_" + Oya.Project.MainImages[Oya.MainImageIndex].MainImageTitle + "-" + (GetNumOfChara(Oya.Project.MainImages[Oya.MainImageIndex], Oya.GetCharaName()) + 1).ToString("00");
             charaImage.CharaImageName = charaImage.CharaImageTitle;
             charaImage.CharaRect = rect;
-            charaImage.CharaImage.Source = imgEffect.Normalize2(bmp, 160, 160);
-            System.Diagnostics.Debug.WriteLine($"メニューの個別文字名 = {Oya.GetCharaName()}, 文字の個数={GetNumOfChara(Oya.Project.MainImages[Oya.MainImageIndex], Oya.GetCharaName())}");
+            charaImage.CharaImage.Source = imgEffect.Normalize2(bmp, SaveSize, SaveSize);
+            System.Diagnostics.Debug.WriteLine($"メニューの個別文字名 = {Oya.GetCharaName()}, 文字の個数={GetNumOfChara(Oya.Project.MainImages[Oya.MainImageIndex], Oya.GetCharaName())} ;; savesize={SaveSize}");
             System.Diagnostics.Debug.WriteLine(" ??? Height = " + charaImage.CharaRect.Height + "  Width = " + charaImage.CharaRect.Width);
 
             (Oya.Project.MainImages[Oya.MainImageIndex]).CharaImages.Add(charaImage);
@@ -169,14 +177,18 @@ namespace CharacomEx
         private int GetNumOfChara(MainImageClass m, string charaName)
         {
             int count = 0;
-
+            
             foreach(CharaImageClass c in m.CharaImages)
             {
-                if(c.CharaImageTitle.Substring(0,1) == charaName)
+                if (c.CharaImageTitle.Contains("_"))
                 {
-                    if (count < int.Parse(Right(c.CharaImageTitle, 2)))
+                    System.Diagnostics.Debug.WriteLine($"検索文字名={charaName} ,タイトル={c.CharaImageTitle} ,{c.CharaImageTitle.IndexOf("_")}文字目までが名前 →　{c.CharaImageTitle.Substring(0, c.CharaImageTitle.IndexOf("_"))}");
+                    if (c.CharaImageTitle.Substring(0, c.CharaImageTitle.IndexOf("_")) == charaName)
                     {
-                        count = int.Parse(Right(c.CharaImageTitle, 2));
+                        if (count < int.Parse(Right(c.CharaImageTitle, 2)))
+                        {
+                            count = int.Parse(Right(c.CharaImageTitle, 2));
+                        }
                     }
                 }
             }
@@ -246,6 +258,68 @@ namespace CharacomEx
                 inkCanvas_DrawRectangle(c.CharaRect);
             }
 
+        }
+
+        /// <summary>
+        /// 2022.03.16 D.Honjyou
+        /// キャンバスの上でマウスをコロコロすると拡大縮小するようにする
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void inkCanvas_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if((Keyboard.Modifiers & ModifierKeys.Control) <= 0)
+            {
+                return;
+            }
+
+            //後続のイベント処理をしない
+            e.Handled = true;
+            double pre_raito;
+            pre_raito = raito;
+
+            //マウスのホイールイベントを受け取り、スライダーをずらす
+            Matrix m0 = new Matrix();
+            if(e.Delta > 0)
+            {
+                raito += 0.1;
+            }
+            else
+            {
+                raito -= 0.1;
+            }
+            //拡大縮小が最大、最小の場合は受け付けない
+            if(raito > 5.0 || raito < 0.2)
+            {
+                raito = pre_raito;
+                return;
+            }
+            //canvasサイズの変更 <=== *=raitoだったら、永遠に拡大し続けてしまう。。。。
+            if (raito >= 1.0)
+            {
+                inkCanvas.Height = ImageDoc1.Height * raito;
+                inkCanvas.Width = ImageDoc1.Width * raito;
+            }
+            System.Diagnostics.Debug.WriteLine($" canvas = ({inkCanvas.Width},{inkCanvas.Height}) ImageDoc1 = ({ImageDoc1.Width},{ImageDoc1.Height}) ratio = {raito}");
+            //canvasの拡大縮小
+            m0.Scale(raito, raito);
+            matrixTransform.Matrix = m0;
+
+            // scrollViewerのスクロールバーの位置をマウス位置を中心とする。
+            Point mousePoint = e.GetPosition(scrollViewer);
+            Double x_barOffset = (scrollViewer.HorizontalOffset + mousePoint.X) * raito - mousePoint.X;
+            scrollViewer.ScrollToHorizontalOffset(x_barOffset);
+
+            Double y_barOffset = (scrollViewer.VerticalOffset + mousePoint.Y) * raito - mousePoint.Y;
+            scrollViewer.ScrollToVerticalOffset(y_barOffset);
+            var Oya = (MainWindow)Application.Current.MainWindow;
+            Oya.SetMagnification(raito);
+        }
+
+        private void ImageDoc1_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            inkCanvas.Height = e.NewSize.Height;
+            inkCanvas.Width = e.NewSize.Width;
         }
     }
 }

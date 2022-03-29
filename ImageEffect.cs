@@ -68,7 +68,7 @@ namespace CharacomEx
         }
 
 
-        public BitmapSource TwoColorProc(BitmapSource src)
+        public BitmapSource TwoColorProc(BitmapSource src, int Threshold = 100)
         {
             //BitmapをPbgra32に変換する
             FormatConvertedBitmap bitmap = new FormatConvertedBitmap(src, PixelFormats.Pbgra32, null, 0);
@@ -152,8 +152,7 @@ namespace CharacomEx
                 for (int x = 0; x < width; x++)
                 {
                     int d = (int)orgPixels[(y * (int)width + x) * 4 + 0];
-                    //System.Diagnostics.Debug.WriteLine(t.ToString() + ":" + d.ToString());
-                    if (d > t) d = 255;
+                    if (d > t * (double)((double)Threshold / 100.0)) d = 255;
                     else d = 0;
                     orgPixels[(y * width + x) * 4 + 0] = (byte)d;
                     orgPixels[(y * width + x) * 4 + 1] = (byte)d;
@@ -948,8 +947,6 @@ namespace CharacomEx
         public BitmapSource CopyToWhiteSquare(BitmapSource src, BitmapSource inputBmp)
         {
             int i, j;
-            int x1, x2, y1, y2;
-            double Aratio;
             //BitmapをPbrga32に変換する
             //FormatConvertedBitmap Bitmap1 = new FormatConvertedBitmap(src, PixelFormats.Pbgra32, null, 0);
             //FormatConvertedBitmap Bitmap2 = new FormatConvertedBitmap(inputBmp, PixelFormats.Pbgra32, null, 0);
@@ -960,8 +957,6 @@ namespace CharacomEx
             int width2 = inputBmp.PixelWidth;
             int height2 = inputBmp.PixelHeight;
 
-            byte r, g, b, a;
-            Color c;
             byte[] Pixels1 = new byte[width1 * height1 * 4];
             byte[] Pixels2 = new byte[width2 * height2 * 4];
             //BitmapSourceから配列へコピー
@@ -998,13 +993,13 @@ namespace CharacomEx
             width1 = 160;
             height1 = 160;
             BitmapSource outBmp = BitmapSource.Create(width1, height1, 96, 96, PixelFormats.Pbgra32, null, Pixels1, stride1);
-            return (outBmp);
+            return outBmp;
         }
         #endregion
         public BitmapSource CopyToWhite(BitmapSource src, BitmapSource inputBmp)
         {
             int i, j;
-            int startX, startY, x, y;
+            int startX, startY;
             int inPos, outPos;
 
             startX = 0;

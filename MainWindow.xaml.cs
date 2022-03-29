@@ -51,6 +51,9 @@ namespace CharacomEx
         public ProjectClass Project { get => _project; set => _project = value; }
         public ObservableCollection<NotificationClass> Notifications { get => _notifications; set => _notifications = value; }
         public string UnopenedNotificationNum;
+        //public string Magnification;
+        public double dMag = 1.0;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -70,10 +73,26 @@ namespace CharacomEx
             LoadNotifications();
             GetNotifications();
 
+            SetMagnification(dMag);
+            UnopenedNotificationNum = CountUnopenedNotificationNum();
+            this.DataContext = new { Magnification = dMag.ToString("P0") };
+            this.DataContext = new { UnNotificationNum = UnopenedNotificationNum };
+        }
+        public void test()
+        {
             UnopenedNotificationNum = CountUnopenedNotificationNum();
             this.DataContext = new { UnNotificationNum = UnopenedNotificationNum };
         }
-
+        /// <summary>
+        /// 2022.03.21 D.Honjyou
+        /// 倍率をメニュー欄に表示
+        /// </summary>
+        /// <param name="m"></param>
+        public void SetMagnification(double m)
+        {
+            dMag = m;
+            this.Magnification.Header = dMag.ToString("P0");
+        }
         /// <summary>
         /// 2021.08.21 D.Honjyou
         /// 通知情報をローカルファイルから読み込む
@@ -148,11 +167,6 @@ namespace CharacomEx
             }
             Console.WriteLine($"MaxID=={max};");
             return max;
-        }
-        public void test()
-        {
-            UnopenedNotificationNum = CountUnopenedNotificationNum();
-            this.DataContext = new { UnNotificationNum = UnopenedNotificationNum };
         }
         /// <summary>
         /// 2021.08.20 D.Honjyou
@@ -406,14 +420,16 @@ namespace CharacomEx
         private int getTabIndexFromName(string TabTitle)
         {
             int iRet;
-
+            int i = 0;
             iRet = -1;
             foreach (TabItem t in mainTab.Items)
             {
+                System.Diagnostics.Debug.WriteLine($"tabIndex = {t.TabIndex}, tabHeader = {t.Header} : check = {TabTitle}");
                 if (t.Header.ToString() == TabTitle)
                 {
-                    iRet = t.TabIndex;
+                    iRet = i;
                 }
+                i++;
             }
 
             return iRet;
@@ -1101,6 +1117,28 @@ namespace CharacomEx
         }
 
         /// <summary>
+        /// 2022.03.27 D.Honjyou
+        /// ファイルのサイズを変更する（メニューより）
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SaveSizeCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            MenuItem control = (MenuItem)sender;
+
+            //すべてチェックを外す
+            if (this.SaveSizeS != null) this.SaveSizeS.IsChecked = false;
+            if (this.SaveSizeM != null) this.SaveSizeM.IsChecked = false;
+            if (this.SaveSizeL != null) this.SaveSizeL.IsChecked = false;
+            if (this.SaveSizeXL != null) this.SaveSizeXL.IsChecked = false;
+
+            //選択されたものをチェックする
+            if(control != null) control.IsChecked = true;
+            if (control != null) System.Diagnostics.Debug.WriteLine( $"Name={control.Name} ; Header = {control.Header} ; Checked = {control.IsChecked}");
+
+        }
+
+        /// <summary>
         /// バージョン情報の表示
         /// </summary>
         /// <param name="sender"></param>
@@ -1217,6 +1255,55 @@ namespace CharacomEx
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             SaveNotifications();
+        }
+
+        /// <summary>
+        /// 2022.03.19 D.Honjyou
+        /// コンテキストメニューで削除が押されたとき
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ContxtMenuItemDelete_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine($"Delete - Index = {CharaImages.SelectedIndex.ToString()}");
+            int tIndex;
+            string sHeader;
+            Image img = new Image();
+
+            //選択中の切り出し矩形番号を取得
+            tIndex = CharaImages.SelectedIndex;
+
+            sHeader = _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaImageName;
+            _project.MainImages[MainImageIndex].CharaImages.RemoveAt(tIndex);
+                
+            //メイン画像の矩形を一度クリアする
+            foreach (TabItem t in mainTab.Items)
+            {
+                if (t.Header.ToString() == _project.MainImages[MainImageIndex].MainImageName)
+                {
+                    foreach (UserControl cc in t.FindChildren<UserControl>())
+                    {
+                        if (cc.Name == "MainTabItem")
+                        {
+                            MainTabItemUserControl mtc = (MainTabItemUserControl)cc;
+                            //↓これはいらないかも2021.08.28 D.Honjyou
+                            mtc.Name = "MainTabItem";
+                            //矩形の再描画
+                            mtc.RedrawRectangle();
+
+                        }
+
+                    }
+                }
+            }
+            //タブの中で、削除した矩形を開いているタブがあれば削除する
+            if(getTabIndexFromName(sHeader) > -1)
+            {
+                System.Diagnostics.Debug.WriteLine($"sHeader = {sHeader} : index = {getTabIndexFromName(sHeader)}");
+                mainTab.Items.RemoveAt(getTabIndexFromName(sHeader));
+            }
+             
+            //mainTab.Items.RemoveAt(mainTab.SelectedIndex);
         }
     }
 

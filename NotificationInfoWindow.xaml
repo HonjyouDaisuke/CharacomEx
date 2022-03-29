@@ -19,7 +19,7 @@
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" FontSize="24" Text="{Binding Title}" />
         <Border Grid.Row="1" BorderThickness="1" BorderBrush="{DynamicResource MahApps.Brushes.WindowTitle}">
-            <TextBlock Text="{Binding Message}" />
+            <TextBlock Text="{Binding Message}" TextWrapping="Wrap"/>
         </Border>
         <TextBlock Grid.Row="2" Text="{Binding AuthorName}" />
         <TextBlock Grid.Row="3" Text="{Binding StartDate}" />
