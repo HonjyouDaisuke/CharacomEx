@@ -142,7 +142,9 @@ namespace CharacomEx
             System.Diagnostics.Debug.WriteLine($"メニューの個別文字名 = {Oya.GetCharaName()}, 文字の個数={GetNumOfChara(Oya.Project.MainImages[Oya.MainImageIndex], Oya.GetCharaName())} ;; savesize={SaveSize}");
             System.Diagnostics.Debug.WriteLine(" ??? Height = " + charaImage.CharaRect.Height + "  Width = " + charaImage.CharaRect.Width);
 
-            (Oya.Project.MainImages[Oya.MainImageIndex]).CharaImages.Add(charaImage);
+            //2022.03.30 D.Honjyou
+            //ListViewへの追加を一番下ではなく一番上に変更
+            Oya.Project.MainImages[Oya.MainImageIndex].CharaImages.Insert(0, charaImage);
 
         }
 

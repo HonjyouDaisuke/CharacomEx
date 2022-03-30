@@ -998,7 +998,7 @@ namespace CharacomEx
                 //MessageBox.Show($"{dlg.FileName}が選択されました。");
             }
             MakeDirectory(dlg.FileName);
-
+            System.Diagnostics.Debug.WriteLine($"MakeDirectory 成功 => {dlg.FileName}");
             string fileName = "";
             BitmapEncoder encoder;
             BitmapSource bs;
@@ -1009,6 +1009,8 @@ namespace CharacomEx
             {
                 //MainImageを保存
                 fileName = dlg.FileName + "\\" + m.MainImageTitle + "." + ext;
+                //個々のメイン画像の存在確認が必要！2022.03.31 D.Honjyou
+                //ファイルが存在する場合は、このプログラムで開いているため、保存できない！
                 stream = new FileStream(fileName, FileMode.Create);
                 encoder = GetEncoder(ext);
                 bs = (BitmapSource)m.MainImage.Source;
@@ -1017,6 +1019,7 @@ namespace CharacomEx
                 stream.Close();
 
                 MakeDirectory(dlg.FileName + "\\" + m.MainImageTitle);
+                System.Diagnostics.Debug.WriteLine($"MakeDirectory 成功 - {dlg.FileName + "\\" + m.MainImageTitle}");
                 //CharaImage
                 foreach (CharaImageClass c in m.CharaImages)
                 {
