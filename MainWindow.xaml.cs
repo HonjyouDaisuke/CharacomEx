@@ -1011,12 +1011,20 @@ namespace CharacomEx
                 fileName = dlg.FileName + "\\" + m.MainImageTitle + "." + ext;
                 //個々のメイン画像の存在確認が必要！2022.03.31 D.Honjyou
                 //ファイルが存在する場合は、このプログラムで開いているため、保存できない！
-                stream = new FileStream(fileName, FileMode.Create);
-                encoder = GetEncoder(ext);
-                bs = (BitmapSource)m.MainImage.Source;
-                encoder.Frames.Add(BitmapFrame.Create(bs));
-                encoder.Save(stream);
-                stream.Close();
+                if (File.Exists(fileName))
+                {
+                    System.Diagnostics.Debug.WriteLine($"ファイルは既に存在しています。上書きはやめておきます。{fileName}");
+                }
+                else
+                {
+                    //保存
+                    stream = new FileStream(fileName, FileMode.Create);
+                    encoder = GetEncoder(ext);
+                    bs = (BitmapSource)m.MainImage.Source;
+                    encoder.Frames.Add(BitmapFrame.Create(bs));
+                    encoder.Save(stream);
+                    stream.Close();
+                }
 
                 MakeDirectory(dlg.FileName + "\\" + m.MainImageTitle);
                 System.Diagnostics.Debug.WriteLine($"MakeDirectory 成功 - {dlg.FileName + "\\" + m.MainImageTitle}");
