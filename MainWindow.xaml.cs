@@ -1276,7 +1276,7 @@ namespace CharacomEx
         /// <param name="e"></param>
         private void ContxtMenuItemDelete_Click(object sender, RoutedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine($"Delete - Index = {CharaImages.SelectedIndex.ToString()}");
+            System.Diagnostics.Debug.WriteLine($"Delete - Index = {CharaImages.SelectedIndex}");
             int tIndex;
             string sHeader;
             Image img = new Image();
@@ -1284,6 +1284,12 @@ namespace CharacomEx
             //選択中の切り出し矩形番号を取得
             tIndex = CharaImages.SelectedIndex;
 
+            if(tIndex < 0)
+            {
+                System.Diagnostics.Debug.WriteLine("矩形が選択されていません。キャンセルします。");
+
+                return;
+            }
             sHeader = _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaImageName;
             _project.MainImages[MainImageIndex].CharaImages.RemoveAt(tIndex);
                 
