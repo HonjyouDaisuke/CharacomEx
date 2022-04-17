@@ -262,6 +262,49 @@ namespace CharacomEx
 
         }
 
+        public void DrawTargetRectangle(Rect rect)
+        {
+            int thin = 8;
+            // 四角形をかく
+            Line myLine1 = new Line();
+            myLine1.Stroke = Brushes.Red;
+            myLine1.X1 = rect.X;
+            myLine1.X2 = rect.X + rect.Width;
+            myLine1.Y1 = rect.Y;
+            myLine1.Y2 = rect.Y;
+            myLine1.HorizontalAlignment = HorizontalAlignment.Left;
+            myLine1.VerticalAlignment = VerticalAlignment.Center;
+            myLine1.StrokeThickness = thin;
+            inkCanvas.Children.Add(myLine1);
+
+            Line myLine2 = new Line();
+            myLine2.Stroke = Brushes.Red;
+            myLine2.X1 = rect.X;
+            myLine2.X2 = rect.X + rect.Width;
+            myLine2.Y1 = rect.Y + rect.Height;
+            myLine2.Y2 = rect.Y + rect.Height;
+            myLine2.StrokeThickness = thin;
+            inkCanvas.Children.Add(myLine2);
+
+            Line myLine3 = new Line();
+            myLine3.Stroke = Brushes.Red;
+            myLine3.X1 = rect.X;
+            myLine3.X2 = rect.X;
+            myLine3.Y1 = rect.Y;
+            myLine3.Y2 = rect.Y + rect.Height;
+            myLine3.StrokeThickness = thin;
+            inkCanvas.Children.Add(myLine3);
+
+            Line myLine4 = new Line();
+            myLine4.Stroke = Brushes.Red;
+            myLine4.X1 = rect.X + rect.Width;
+            myLine4.X2 = rect.X + rect.Width;
+            myLine4.Y1 = rect.Y;
+            myLine4.Y2 = rect.Y + rect.Height;
+            myLine4.StrokeThickness = thin;
+            inkCanvas.Children.Add(myLine4);
+        }
+
         /// <summary>
         /// 2022.03.16 D.Honjyou
         /// キャンバスの上でマウスをコロコロすると拡大縮小するようにする
@@ -318,6 +361,29 @@ namespace CharacomEx
             Oya.SetMagnification(raito);
         }
 
+        /// <summary>
+        /// 20022.04.17 D.Honjyou
+        /// 矩形がシングルクリックで選択されたときに中心に移動する。
+        /// </summary>
+        /// <param name="center"></param>
+        public void SetCentering(Rect center)
+        {
+            // scrollViewerのスクロールバーの位置をマウス位置を中心とする。
+            
+            //Double x_barOffset = (center.Left + (center.Width / 2) - (scrollViewer.ActualWidth / 2)) * raito;
+            //Double y_barOffset = (center.Top + (center.Height / 2) - (scrollViewer.ActualHeight /2)) * raito;
+            Double x_barOffset = (center.Left + (center.Width / 2)) * raito - (scrollViewer.ActualWidth / 2);
+            Double y_barOffset = (center.Top + (center.Height / 2)) * raito - (scrollViewer.ActualHeight / 2);
+
+            System.Diagnostics.Debug.WriteLine($"ratio = {raito} ;;; screen = {scrollViewer.ActualWidth},{scrollViewer.ActualHeight} ::: Offset = {scrollViewer.HorizontalOffset}, {scrollViewer.VerticalOffset} :: point = {center.X} , {center.Y} ;; bar= {x_barOffset} , {y_barOffset}");
+
+            //var Oya = (MainWindow)Application.Current.MainWindow;
+            scrollViewer.ScrollToHorizontalOffset(x_barOffset);
+            scrollViewer.ScrollToVerticalOffset(y_barOffset);
+            //Oya.SetMagnification(raito);
+
+
+        }
         private void ImageDoc1_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             inkCanvas.Height = e.NewSize.Height;

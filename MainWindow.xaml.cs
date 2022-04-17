@@ -581,6 +581,36 @@ namespace CharacomEx
             SelectTabItem(Header);
         }
 
+        private TabItem GetTabItem(string TabName)
+        {
+            foreach (TabItem ti in mainTab.Items)
+            {
+                if (ti.Header != null)
+                {
+                    if (ti.Header.ToString() == TabName)
+                    {
+                        return ti;
+                    }
+                }
+
+            }
+            return null;
+        }
+        private void CharaListSingleSelect(object sender, MouseButtonEventArgs e)
+        {
+            int tIndex;
+            
+            tIndex = CharaImages.SelectedIndex;
+            if (tIndex < 0) return;
+            CharaImageClass cic = (CharaImageClass)_project.MainImages[MainImageIndex].CharaImages[tIndex];
+            System.Diagnostics.Debug.WriteLine($"Index = {tIndex} 座標 = ({cic.CharaRect.X} , {cic.CharaRect.Y}) 大きさ = {cic.CharaRect.Width} x {cic.CharaRect.Height}");
+            TabItem ti = (TabItem)mainTab.Items[getTabIndexFromName(_project.MainImages[MainImageIndex].MainImageName)];
+            MainTabItemUserControl mtic = (MainTabItemUserControl)ti.Content;
+            mtic.RedrawRectangle();
+            mtic.DrawTargetRectangle(cic.CharaRect);
+            mtic.SetCentering(cic.CharaRect);
+        }
+
         /// <summary>
         /// 2021.07.24 D.Honjyou
         /// 切り出しパネルから文字を選んだ時、メインタブに画像を表示

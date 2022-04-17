@@ -211,7 +211,7 @@
                         <ListView.ItemTemplate>
                             <DataTemplate DataType="local:CharaImageClass">
                                 <Grid HorizontalAlignment="Stretch">
-                                    <StackPanel>
+                                    <StackPanel MouseUp="CharaListSingleSelect">
                                         <ContentControl MouseDoubleClick="CharaListSelect">
                                             <Image HorizontalAlignment="Stretch" Source="{Binding CharaImage.Source, TargetNullValue={x:Null}}"  />
                                             <!-- <Image HorizontalAlignment="Stretch" Source="{Binding CharaImage.Source, TargetNullValue={x:Null}}" Height="{Binding CharaImage.Height}" Width="{Binding CharaImage.Width}" /> -->
