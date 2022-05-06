@@ -305,6 +305,33 @@ namespace CharacomEx
             inkCanvas.Children.Add(myLine4);
         }
 
+        public void inkCanvas_ScaleChange(int s)
+        {
+            double scale = 0.0;
+
+            raito = s * 0.01;
+            Matrix m0 = new Matrix();
+            //canvasサイズの変更 <=== *=raitoだったら、永遠に拡大し続けてしまう。。。。
+            if (scale >= 1.0)
+            {
+                inkCanvas.Height = ImageDoc1.Height * raito;
+                inkCanvas.Width = ImageDoc1.Width * raito;
+            }
+            System.Diagnostics.Debug.WriteLine($" canvas = ({inkCanvas.Width},{inkCanvas.Height}) ImageDoc1 = ({ImageDoc1.Width},{ImageDoc1.Height}) ratio = {raito} s = {s}");
+            //canvasの拡大縮小
+            m0.Scale(raito, raito);
+            matrixTransform.Matrix = m0;
+
+            // scrollViewerのスクロールバーの位置をマウス位置を中心とする。
+            //Point mousePoint = e.GetPosition(scrollViewer);
+            //Double x_barOffset = (scrollViewer.HorizontalOffset + mousePoint.X) * raito - mousePoint.X;
+            //scrollViewer.ScrollToHorizontalOffset(x_barOffset);
+
+            //Double y_barOffset = (scrollViewer.VerticalOffset + mousePoint.Y) * raito - mousePoint.Y;
+            //scrollViewer.ScrollToVerticalOffset(y_barOffset);
+            var Oya = (MainWindow)Application.Current.MainWindow;
+            Oya.SetMagnification(raito);
+        }
         /// <summary>
         /// 2022.03.16 D.Honjyou
         /// キャンバスの上でマウスをコロコロすると拡大縮小するようにする

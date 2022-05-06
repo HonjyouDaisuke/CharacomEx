@@ -1352,6 +1352,32 @@ namespace CharacomEx
              
             //mainTab.Items.RemoveAt(mainTab.SelectedIndex);
         }
+
+        private void SliderScale_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (mainTab == null) return;
+            if(mainTab.Items.Count < 1)
+            {
+                return;
+            }
+            //メイン画像を探してスケールを変更する
+            foreach (TabItem t in mainTab.Items)
+            {
+                if (t.Header.ToString() == _project.MainImages[MainImageIndex].MainImageName)
+                {
+                    foreach (UserControl cc in t.FindChildren<UserControl>())
+                    {
+                        if (cc.Name == "MainTabItem")
+                        {
+                            MainTabItemUserControl mtc = (MainTabItemUserControl)cc;
+                            mtc.inkCanvas_ScaleChange((int)e.NewValue);
+
+                        }
+
+                    }
+                }
+            }
+        }
     }
 
 
