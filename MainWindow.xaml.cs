@@ -1027,8 +1027,10 @@ namespace CharacomEx
                 return;
                 //MessageBox.Show($"{dlg.FileName}が選択されました。");
             }
-            MakeDirectory(dlg.FileName);
-            System.Diagnostics.Debug.WriteLine($"MakeDirectory 成功 => {dlg.FileName}");
+            //2022.05.31 D.Honjyou
+            //資料ごとにフォルダは作らない
+            //MakeDirectory(dlg.FileName);
+            //System.Diagnostics.Debug.WriteLine($"MakeDirectory 成功 => {dlg.FileName}");
             string fileName = "";
             BitmapEncoder encoder;
             BitmapSource bs;
@@ -1037,6 +1039,9 @@ namespace CharacomEx
             //イメージをJpegにして保存
             foreach (MainImageClass m in Project.MainImages)
             {
+                //2022.05.31 D.Honjyou
+                //MainImageは保存しないことにする。
+                /****
                 //MainImageを保存
                 fileName = dlg.FileName + "\\" + m.MainImageTitle + "." + ext;
                 //個々のメイン画像の存在確認が必要！2022.03.31 D.Honjyou
@@ -1055,14 +1060,20 @@ namespace CharacomEx
                     encoder.Save(stream);
                     stream.Close();
                 }
+                ****/
 
-                MakeDirectory(dlg.FileName + "\\" + m.MainImageTitle);
-                System.Diagnostics.Debug.WriteLine($"MakeDirectory 成功 - {dlg.FileName + "\\" + m.MainImageTitle}");
+                //2022.05.31 D.Honjyou
+                //資料ごとのフォルダは作らない
+                //MakeDirectory(dlg.FileName + "\\" + m.MainImageTitle);
+                //System.Diagnostics.Debug.WriteLine($"MakeDirectory 成功 - {dlg.FileName + "\\" + m.MainImageTitle}");
                 //CharaImage
                 foreach (CharaImageClass c in m.CharaImages)
                 {
                     //CharaImageを保存
-                    fileName = dlg.FileName + "\\" + m.MainImageTitle + "\\" + c.CharaImageTitle + "." + ext;
+                    //2022.05.31 D.Honjyou
+                    //資料ごとにフォルダを作らないので、ファイル名を変更
+                    //fileName = dlg.FileName + "\\" + m.MainImageTitle + "\\" + c.CharaImageTitle + "." + ext;
+                    fileName = dlg.FileName + "\\" + c.CharaImageTitle + "." + ext;
                     stream = new FileStream(fileName, FileMode.Create);
                     encoder = GetEncoder(ext);
                     bs = (BitmapSource)c.CharaImage.Source;

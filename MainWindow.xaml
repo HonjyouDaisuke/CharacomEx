@@ -171,7 +171,7 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-            <TextBox x:Name="CharaName" Text="無" />
+            <TextBox x:Name="CharaName" Text="無" FontSize="30" />
             <Slider x:Name="SliderScale" Width="80" Height="30" TickPlacement="TopLeft"
                     TickFrequency="10"
                     Foreground="BurlyWood"
@@ -225,7 +225,7 @@
                                                 <Image HorizontalAlignment="Stretch" Source="{Binding CharaImage.Source, TargetNullValue={x:Null}}"  />
                                                 <!-- <Image HorizontalAlignment="Stretch" Source="{Binding CharaImage.Source, TargetNullValue={x:Null}}" Height="{Binding CharaImage.Height}" Width="{Binding CharaImage.Width}" /> -->
                                             </ContentControl>
-                                            <TextBox Text="{Binding CharaImageTitle}" />
+                                            <TextBox Text="{Binding CharaImageTitle}" FontSize="20"/>
                                             <!-- 大きさを出したいときは以下を使う
                                         <TextBlock Text="{Binding CharaImage.Height}" />
                                         <TextBlock Text="{Binding CharaImage.Width}" />

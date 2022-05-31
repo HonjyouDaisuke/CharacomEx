@@ -305,6 +305,22 @@ namespace CharacomEx
             inkCanvas.Children.Add(myLine4);
         }
 
+        void ViewCenter(double center_x, double center_y)
+        {
+            double sv_width_2 = scrollViewer.ActualWidth / 2;
+            double sv_height_2 = scrollViewer.ActualHeight / 2;
+            double offset_x = center_x - sv_width_2;
+            double offset_y = center_y - sv_height_2;
+            if (offset_x < 0) offset_x = 0;
+            else if ((inkCanvas.ActualWidth - offset_x) < sv_width_2)
+                offset_x = inkCanvas.ActualWidth - sv_width_2;
+            if (offset_y < 0) offset_y = 0;
+            else if ((inkCanvas.ActualHeight - offset_y) < sv_height_2)
+                offset_y = inkCanvas.ActualHeight - sv_height_2;
+            scrollViewer.ScrollToHorizontalOffset(offset_x);
+            scrollViewer.ScrollToVerticalOffset(offset_y);
+        }
+
         public void inkCanvas_ScaleChange(int s)
         {
             double scale = 0.0;
@@ -318,19 +334,31 @@ namespace CharacomEx
                 inkCanvas.Width = ImageDoc1.Width * raito;
             }
             System.Diagnostics.Debug.WriteLine($" canvas = ({inkCanvas.Width},{inkCanvas.Height}) ImageDoc1 = ({ImageDoc1.Width},{ImageDoc1.Height}) ratio = {raito} s = {s}");
+            System.Diagnostics.Debug.WriteLine($"1 HOffset = {scrollViewer.HorizontalOffset} :: vOffset = {scrollViewer.VerticalOffset}");
+            System.Diagnostics.Debug.WriteLine($"s viewW = {scrollViewer.ViewportWidth} :: view = {scrollViewer.ViewportHeight}");
             //canvasの拡大縮小
             m0.Scale(raito, raito);
             matrixTransform.Matrix = m0;
+            //センターの算出
+            double cx, cy;
+            cx = scrollViewer.HorizontalOffset + scrollViewer.ViewportWidth / 2.0;
+            cy = scrollViewer.VerticalOffset + scrollViewer.ViewportHeight / 2.0;
+            ViewCenter(cx, cy);
+
 
             // scrollViewerのスクロールバーの位置をマウス位置を中心とする。
             //Point mousePoint = e.GetPosition(scrollViewer);
-            //Double x_barOffset = (scrollViewer.HorizontalOffset + mousePoint.X) * raito - mousePoint.X;
+            //Double x_barOffset = scrollViewer.HorizontalOffset * raito;
             //scrollViewer.ScrollToHorizontalOffset(x_barOffset);
 
-            //Double y_barOffset = (scrollViewer.VerticalOffset + mousePoint.Y) * raito - mousePoint.Y;
+            //Double y_barOffset = scrollViewer.VerticalOffset * raito;
             //scrollViewer.ScrollToVerticalOffset(y_barOffset);
+            //System.Diagnostics.Debug.WriteLine($"- x_barOffset = {x_barOffset} :: y_barOffset = {y_barOffset}");
             var Oya = (MainWindow)Application.Current.MainWindow;
             Oya.SetMagnification(raito);
+            System.Diagnostics.Debug.WriteLine($"e viewW = {scrollViewer.ViewportWidth} :: view = {scrollViewer.ViewportHeight}");
+            System.Diagnostics.Debug.WriteLine($"2 HOffset = {scrollViewer.HorizontalOffset} :: vOffset = {scrollViewer.VerticalOffset}");
+
         }
         /// <summary>
         /// 2022.03.16 D.Honjyou
