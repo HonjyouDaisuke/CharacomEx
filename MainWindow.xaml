@@ -171,7 +171,7 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-            <TextBox x:Name="CharaName" Text="無" FontSize="30" />
+            <TextBox x:Name="CharaName" Width="35" Text="無" FontSize="30" />
             <Slider x:Name="SliderScale" Width="80" Height="30" TickPlacement="TopLeft"
                     TickFrequency="10"
                     Foreground="BurlyWood"

@@ -54,6 +54,11 @@ namespace CharacomEx
         //public string Magnification;
         public double dMag = 1.0;
 
+        //2022.06.01 D.Honjyou
+        //開くフォルダと保存フォルダの格納
+        private string sOpenDir = "";
+        private string sSaveDir = "";
+
         public MainWindow()
         {
             InitializeComponent();
@@ -337,7 +342,10 @@ namespace CharacomEx
         {
             // ダイアログのインスタンスを生成
             var dialog = new OpenFileDialog();
-
+            if(sOpenDir != "")
+            {
+                dialog.InitialDirectory = sOpenDir;
+            }
             // ファイルの種類を設定
             //dialog.Filter = "テキストファイル (*.txt)|*.txt|全てのファイル (*.*)|*.*";
 
@@ -351,6 +359,10 @@ namespace CharacomEx
                     bitmap.UriSource = new Uri(dialog.FileName); // ビットマップイメージのソースにファイルを指定する。
                     bitmap.EndInit();
                     //ImageDoc1.Source = bitmap; // Imageコントロールにバインディングする。
+                    //2022.06.01 D.Honjyou
+                    //ファイル名からディレクトリを保存
+                    sOpenDir = System.IO.Path.GetDirectoryName(dialog.FileName);
+                    System.Diagnostics.Debug.WriteLine($"sOpenDir = {sOpenDir}");
 
                     //2021.07.24 D.Honjyou
                     // Projectにメイン画像を追加
@@ -1008,15 +1020,17 @@ namespace CharacomEx
 
             //path += @"\" + Project.ProjectTitle;
             var dlg = new MSAPI::Dialogs.CommonOpenFileDialog();
+            
 
             // フォルダ選択ダイアログ（falseにするとファイル選択ダイアログ）
             dlg.IsFolderPicker = true;
             // タイトル
             dlg.Title = "出力するフォルダを選択してください";
             // 初期ディレクトリ
-            if (_project.ProjectFileName != "")
+            // 2022.06.01 初期ディレクトリを保存と開くで分ける
+            if (sSaveDir != "")
             {
-                dlg.InitialDirectory = System.IO.Path.GetDirectoryName(_project.ProjectFileName);
+                dlg.InitialDirectory = System.IO.Path.GetDirectoryName(sSaveDir);
             }
 
 
@@ -1036,6 +1050,7 @@ namespace CharacomEx
             BitmapSource bs;
             FileStream stream;
 
+            sSaveDir = dlg.FileName;
             //イメージをJpegにして保存
             foreach (MainImageClass m in Project.MainImages)
             {
