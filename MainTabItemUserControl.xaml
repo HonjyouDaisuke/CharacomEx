@@ -16,10 +16,15 @@
                 <local:CustomInkCanvas.RenderTransform>
                     <MatrixTransform x:Name="matrixTransform" />
                 </local:CustomInkCanvas.RenderTransform>
+                <local:CustomInkCanvas.LayoutTransform>
+                            <RotateTransform x:Name="rotateTransform" />
+                </local:CustomInkCanvas.LayoutTransform>
                 <Image x:Name="ImageDoc1" Stretch="Fill" 
                        Source="{Binding MainImage}" 
                        Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelWidth}" 
-                       Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelHeight}" SizeChanged="ImageDoc1_SizeChanged"/>
+                       Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelHeight}" SizeChanged="ImageDoc1_SizeChanged">
+                    
+                </Image>
             </local:CustomInkCanvas>
         </ScrollViewer>
     </Grid>

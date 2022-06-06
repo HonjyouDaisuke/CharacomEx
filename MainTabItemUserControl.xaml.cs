@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Ink;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -29,19 +30,19 @@ namespace CharacomEx
         {
             InitializeComponent();
         }
-        
+
         public void ClearRectView()
         {
 
-            for(int i = 0; i < inkCanvas.Children.Count; i++)
+            for (int i = 0; i < inkCanvas.Children.Count; i++)
             {
-                if(inkCanvas.Children[i].GetType().ToString() == "System.Windows.Shapes.Line")
+                if (inkCanvas.Children[i].GetType().ToString() == "System.Windows.Shapes.Line")
                 {
                     inkCanvas.Children.RemoveAt(i);
                     i--;
                 }
             }
-            
+
 
             //inkCanvas.Children.GetType
             //inkCanvas.Children.Clear();
@@ -123,7 +124,13 @@ namespace CharacomEx
 
             inkCanvas_DrawRectangle(rect);
 
-            
+            //2022.06.05 D.Honjyou
+            //CachedBitmapになってしまったのを回避するためいったんバイナリに変換
+            byte[] tmp = Oya.ToBinary((BitmapSource)bmp);
+            bmp = Oya.ToBitmapSource(tmp);
+
+            bmp = imgEffect.BitmapRotate(bmp, rotateTransform.Angle);
+            System.Diagnostics.Debug.WriteLine($"回転角度＝{rotateTransform.Angle}");
             //2022.03.27 D.Honjyou
             //切り出した画像の保存サイズをメニューから引用
             int SaveSize = 0;
@@ -179,8 +186,8 @@ namespace CharacomEx
         private int GetNumOfChara(MainImageClass m, string charaName)
         {
             int count = 0;
-            
-            foreach(CharaImageClass c in m.CharaImages)
+
+            foreach (CharaImageClass c in m.CharaImages)
             {
                 if (c.CharaImageTitle.Contains("_"))
                 {
@@ -203,8 +210,21 @@ namespace CharacomEx
         /// </summary>
         /// <param name="inkCanvas">InkCanvas</param>
         /// <param name="rect">矩形データ</param>
-        private void inkCanvas_DrawRectangle( Rect rect)
+        private void inkCanvas_DrawRectangle(Rect rect)
         {
+            RectangleGeometry rg = new RectangleGeometry();
+            rg.Rect = rect;
+
+            Path p = new Path();
+            p.Stroke = Brushes.Red;
+            p.StrokeThickness = 3;
+            p.StrokeDashArray = new DoubleCollection { 2, 2 };
+            p.Data = rg;
+
+            
+
+            inkCanvas.Children.Add(p);
+            /**
             // 四角形をかく
             Line myLine1 = new Line();
             myLine1.Stroke = Brushes.Red;
@@ -247,6 +267,7 @@ namespace CharacomEx
             myLine4.StrokeThickness = 3;
             myLine4.StrokeDashArray = new DoubleCollection { 2, 2 };
             inkCanvas.Children.Add(myLine4);
+            **/
         }
 
         public void RedrawRectangle()
@@ -265,6 +286,17 @@ namespace CharacomEx
         public void DrawTargetRectangle(Rect rect)
         {
             int thin = 8;
+            RectangleGeometry rg = new RectangleGeometry();
+            rg.Rect = rect;
+
+            Path p = new Path();
+            p.Stroke = Brushes.Red;
+            p.StrokeThickness = thin;
+            p.Data = rg;
+
+            inkCanvas.Children.Add(p);
+
+            /**
             // 四角形をかく
             Line myLine1 = new Line();
             myLine1.Stroke = Brushes.Red;
@@ -303,6 +335,7 @@ namespace CharacomEx
             myLine4.Y2 = rect.Y + rect.Height;
             myLine4.StrokeThickness = thin;
             inkCanvas.Children.Add(myLine4);
+            **/
         }
 
         void ViewCenter(double center_x, double center_y)
@@ -323,12 +356,10 @@ namespace CharacomEx
 
         public void inkCanvas_ScaleChange(int s)
         {
-            double scale = 0.0;
-
-            raito = s * 0.01;
+            raito = (double)s * 0.01;
             Matrix m0 = new Matrix();
             //canvasサイズの変更 <=== *=raitoだったら、永遠に拡大し続けてしまう。。。。
-            if (scale >= 1.0)
+            if (raito >= 1.0)
             {
                 inkCanvas.Height = ImageDoc1.Height * raito;
                 inkCanvas.Width = ImageDoc1.Width * raito;
@@ -336,14 +367,16 @@ namespace CharacomEx
             System.Diagnostics.Debug.WriteLine($" canvas = ({inkCanvas.Width},{inkCanvas.Height}) ImageDoc1 = ({ImageDoc1.Width},{ImageDoc1.Height}) ratio = {raito} s = {s}");
             System.Diagnostics.Debug.WriteLine($"1 HOffset = {scrollViewer.HorizontalOffset} :: vOffset = {scrollViewer.VerticalOffset}");
             System.Diagnostics.Debug.WriteLine($"s viewW = {scrollViewer.ViewportWidth} :: view = {scrollViewer.ViewportHeight}");
-            //canvasの拡大縮小
-            m0.Scale(raito, raito);
-            matrixTransform.Matrix = m0;
             //センターの算出
             double cx, cy;
             cx = scrollViewer.HorizontalOffset + scrollViewer.ViewportWidth / 2.0;
             cy = scrollViewer.VerticalOffset + scrollViewer.ViewportHeight / 2.0;
-            ViewCenter(cx, cy);
+            //ViewCenter(cx, cy);
+            
+            //canvasの拡大縮小
+            //m0.Scale(raito, raito);
+            m0.ScaleAt(raito, raito, cx, cy);
+            matrixTransform.Matrix = m0;
 
 
             // scrollViewerのスクロールバーの位置をマウス位置を中心とする。
@@ -401,19 +434,25 @@ namespace CharacomEx
                 inkCanvas.Width = ImageDoc1.Width * raito;
             }
             System.Diagnostics.Debug.WriteLine($" canvas = ({inkCanvas.Width},{inkCanvas.Height}) ImageDoc1 = ({ImageDoc1.Width},{ImageDoc1.Height}) ratio = {raito}");
+            //センターの算出
+            double cx, cy;
+            cx = scrollViewer.HorizontalOffset + scrollViewer.ViewportWidth / 2.0;
+            cy = scrollViewer.VerticalOffset + scrollViewer.ViewportHeight / 2.0;
             //canvasの拡大縮小
-            m0.Scale(raito, raito);
+            //m0.Scale(raito, raito);
+            m0.ScaleAt(raito, raito, cx, cy);
             matrixTransform.Matrix = m0;
 
             // scrollViewerのスクロールバーの位置をマウス位置を中心とする。
-            Point mousePoint = e.GetPosition(scrollViewer);
-            Double x_barOffset = (scrollViewer.HorizontalOffset + mousePoint.X) * raito - mousePoint.X;
-            scrollViewer.ScrollToHorizontalOffset(x_barOffset);
+            //Point mousePoint = e.GetPosition(scrollViewer);
+            //Double x_barOffset = (scrollViewer.HorizontalOffset + mousePoint.X) * raito - mousePoint.X;
+            //scrollViewer.ScrollToHorizontalOffset(x_barOffset);
 
-            Double y_barOffset = (scrollViewer.VerticalOffset + mousePoint.Y) * raito - mousePoint.Y;
-            scrollViewer.ScrollToVerticalOffset(y_barOffset);
+            //Double y_barOffset = (scrollViewer.VerticalOffset + mousePoint.Y) * raito - mousePoint.Y;
+            //scrollViewer.ScrollToVerticalOffset(y_barOffset);
             var Oya = (MainWindow)Application.Current.MainWindow;
             Oya.SetMagnification(raito);
+            
         }
 
         /// <summary>
@@ -443,6 +482,23 @@ namespace CharacomEx
         {
             inkCanvas.Height = e.NewSize.Height;
             inkCanvas.Width = e.NewSize.Width;
+        }
+
+        /// <summary>
+        /// メイン画像を回転させる
+        /// </summary>
+        /// <param name="LorR"></param>
+        public void RotateImage(int LorR)
+        {
+            System.Diagnostics.Debug.WriteLine($"回転させます。{LorR}");
+
+            rotateTransform.Angle += (90 * LorR);
+            //double w, h;
+            //w = inkCanvas.Width;
+            //h = inkCanvas.Height;
+            //inkCanvas.Height = w;
+            //inkCanvas.Width = h;
+            System.Diagnostics.Debug.WriteLine($"回転後のサイズ{inkCanvas.Width},{inkCanvas.Height}-{ImageDoc1.ActualWidth},{ImageDoc1.ActualHeight}");
         }
     }
 }

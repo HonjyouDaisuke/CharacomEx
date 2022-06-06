@@ -350,7 +350,7 @@ namespace CharacomEx
             int height_a = a.PixelHeight;
             int width_b = b.PixelWidth;
             int height_b = b.PixelHeight;
-
+            
             int i;
             byte[] pix_a = new byte[width_a * height_a * 4];
             byte[] pix_b = new byte[width_b * height_b * 4];
@@ -368,6 +368,28 @@ namespace CharacomEx
                 if (pix_a[i] != pix_b[i]) bRet = false;
             }
             return bRet;
+        }
+
+        /// <summary>
+        /// 2022.06.05 D.Honjyou
+        /// ビットマップを回転させる
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="rotate"></param>
+        /// <returns></returns>
+        public BitmapSource BitmapRotate(BitmapSource src, double rotate)
+        {
+            BitmapImage img = (BitmapImage)src;
+            TransformedBitmap tb = new TransformedBitmap();
+
+            tb.BeginInit();
+            tb.Source = img;
+            RotateTransform transform = new RotateTransform(rotate);
+            tb.Transform = transform;
+            tb.EndInit();
+
+            
+            return ((BitmapSource)tb);
         }
 
         /// <summary>

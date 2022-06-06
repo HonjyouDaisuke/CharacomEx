@@ -13,5 +13,13 @@ namespace CharacomEx
     /// </summary>
     public partial class App : Application
     {
+        private void Application_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            //メッセージ表示
+            MessageBox.Show(e.Exception.Message);
+            
+            //イベント処理完了
+            e.Handled = true;
+        }
     }
 }

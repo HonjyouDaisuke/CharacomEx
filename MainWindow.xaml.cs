@@ -54,14 +54,19 @@ namespace CharacomEx
         //public string Magnification;
         public double dMag = 1.0;
 
-        //2022.06.01 D.Honjyou
-        //開くフォルダと保存フォルダの格納
-        private string sOpenDir = "";
-        private string sSaveDir = "";
-
         public MainWindow()
         {
             InitializeComponent();
+
+            //2022.06.02 D.Honjyou
+            //直前のバージョンの設定値を読み込む
+            Properties.Settings.Default.Upgrade();
+            //設定ファイルに保存したウィンドウの位置を再現
+            this.Left = Properties.Settings.Default.MainWindowPosition.X;
+            this.Top = Properties.Settings.Default.MainWindowPosition.Y;
+            this.Width = Properties.Settings.Default.MainWindowWidth;
+            this.Height = Properties.Settings.Default.MainWindowHeight;
+
             CTreeView.ItemsSource = _project.MainImages;
             ProjectInfo.DataContext = _project;
 
@@ -97,6 +102,7 @@ namespace CharacomEx
         {
             dMag = m;
             this.Magnification.Header = dMag.ToString("P0");
+            this.SliderScale.Value = (int)(m * 100.0);
         }
         /// <summary>
         /// 2021.08.21 D.Honjyou
@@ -342,9 +348,9 @@ namespace CharacomEx
         {
             // ダイアログのインスタンスを生成
             var dialog = new OpenFileDialog();
-            if(sOpenDir != "")
+            if(Properties.Settings.Default.OpenDir != "")
             {
-                dialog.InitialDirectory = sOpenDir;
+                dialog.InitialDirectory = Properties.Settings.Default.OpenDir;
             }
             // ファイルの種類を設定
             //dialog.Filter = "テキストファイル (*.txt)|*.txt|全てのファイル (*.*)|*.*";
@@ -361,8 +367,8 @@ namespace CharacomEx
                     //ImageDoc1.Source = bitmap; // Imageコントロールにバインディングする。
                     //2022.06.01 D.Honjyou
                     //ファイル名からディレクトリを保存
-                    sOpenDir = System.IO.Path.GetDirectoryName(dialog.FileName);
-                    System.Diagnostics.Debug.WriteLine($"sOpenDir = {sOpenDir}");
+                    Properties.Settings.Default.OpenDir = System.IO.Path.GetDirectoryName(dialog.FileName);
+                    System.Diagnostics.Debug.WriteLine($"Properties.Settings.Default.OpenDir = {Properties.Settings.Default.OpenDir}");
 
                     //2021.07.24 D.Honjyou
                     // Projectにメイン画像を追加
@@ -1028,9 +1034,9 @@ namespace CharacomEx
             dlg.Title = "出力するフォルダを選択してください";
             // 初期ディレクトリ
             // 2022.06.01 初期ディレクトリを保存と開くで分ける
-            if (sSaveDir != "")
+            if (Properties.Settings.Default.SaveDir != "")
             {
-                dlg.InitialDirectory = System.IO.Path.GetDirectoryName(sSaveDir);
+                dlg.InitialDirectory = System.IO.Path.GetDirectoryName(Properties.Settings.Default.SaveDir);
             }
 
 
@@ -1050,7 +1056,7 @@ namespace CharacomEx
             BitmapSource bs;
             FileStream stream;
 
-            sSaveDir = dlg.FileName;
+            Properties.Settings.Default.SaveDir = dlg.FileName;
             //イメージをJpegにして保存
             foreach (MainImageClass m in Project.MainImages)
             {
@@ -1314,6 +1320,20 @@ namespace CharacomEx
         }
 
         /// <summary>
+        /// 設定ファイルを保存
+        /// 2022.06.02 D.Honjyou
+        /// </summary>
+        private void SaveSettings()
+        {
+            //ウィンドウの位置を保存
+            Properties.Settings.Default.MainWindowPosition = new System.Drawing.Point((int)Left, (int)Top);
+            Properties.Settings.Default.MainWindowWidth = Width;
+            Properties.Settings.Default.MainWindowHeight = Height;
+
+            //ファイルに保存
+            Properties.Settings.Default.Save();
+        }
+        /// <summary>
         /// 2021.08.21 D.Honjyou
         /// メインウィンドウ終了時
         /// </summary>
@@ -1322,6 +1342,7 @@ namespace CharacomEx
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             SaveNotifications();
+            SaveSettings();
         }
 
         /// <summary>
@@ -1397,6 +1418,54 @@ namespace CharacomEx
                         {
                             MainTabItemUserControl mtc = (MainTabItemUserControl)cc;
                             mtc.inkCanvas_ScaleChange((int)e.NewValue);
+
+                        }
+
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 左へ９０度回転ボタンが押されたとき
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MenuItemRotateLeft_Click(object sender, RoutedEventArgs e)
+        {
+            //メイン画像を探して回転させる
+            foreach (TabItem t in mainTab.Items)
+            {
+                if (t.Header.ToString() == _project.MainImages[MainImageIndex].MainImageName)
+                {
+                    foreach (UserControl cc in t.FindChildren<UserControl>())
+                    {
+                        if (cc.Name == "MainTabItem")
+                        {
+                            MainTabItemUserControl mtc = (MainTabItemUserControl)cc;
+                            mtc.RotateImage(-1);
+
+                        }
+
+                    }
+                }
+            }
+
+        }
+
+        private void MenuItemRotateRight_Click(object sender, RoutedEventArgs e)
+        {
+            //メイン画像を探して回転させる
+            foreach (TabItem t in mainTab.Items)
+            {
+                if (t.Header.ToString() == _project.MainImages[MainImageIndex].MainImageName)
+                {
+                    foreach (UserControl cc in t.FindChildren<UserControl>())
+                    {
+                        if (cc.Name == "MainTabItem")
+                        {
+                            MainTabItemUserControl mtc = (MainTabItemUserControl)cc;
+                            mtc.RotateImage(1);
 
                         }
 
