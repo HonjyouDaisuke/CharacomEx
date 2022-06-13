@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace CharacomEx
 {
@@ -58,7 +59,7 @@ namespace CharacomEx
     /// 切り出し矩形画像を管理するクラス
     /// </summary>
     [Serializable()]
-    class CharaImageClass
+    class CharaImageClass : INotifyPropertyChanged
     {
         private string _charaImageTitle;
         private string _charaImageName;
@@ -67,11 +68,32 @@ namespace CharacomEx
         [NonSerialized()]
         private Image _charaImage = new Image();
         
-        public string CharaImageTitle { get => _charaImageTitle; set => _charaImageTitle = value; }
+        public string CharaImageTitle
+        {
+            get { return _charaImageTitle; }
+            set
+            {
+                _charaImageTitle = value;
+                OnPropertyChanged(value);
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        //public string CharaImageTitle { get => _charaImageTitle; set => _charaImageTitle = value; }
         public string CharaImageName { get => _charaImageName; set => _charaImageName = value; }
         public Image CharaImage { get => _charaImage; set => _charaImage = value; }
         public Rect CharaRect { get => _charaRect; set => _charaRect = value; }
         public byte[] Img { get => img; set => img = value; }
+
+        public void OnPropertyChanged(string value)
+        {
+            if(PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(value));
+                System.Diagnostics.Debug.WriteLine($"プロパティチェンジ：[{value}]");
+            }
+        }
+
     }
 
     class MainOrCharaClass

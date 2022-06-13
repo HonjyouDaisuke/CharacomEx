@@ -63,7 +63,7 @@ namespace CharacomEx
             }
 
             //BitmapSourceに再変換
-            BitmapSource outBmp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Pbgra32, null, orgPixels, stride);
+            BitmapSource outBmp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Pbgra32, null, outPixels, stride);
             return (outBmp);
         }
 
@@ -77,6 +77,7 @@ namespace CharacomEx
             int width = bitmap.PixelWidth;
             int height = bitmap.PixelHeight;
             byte[] orgPixels = new byte[width * height * 4];
+            byte[] outPixels = new byte[width * height * 4];
 
             //BitmapSourceから配列へコピー
             int stride = (width * bitmap.Format.BitsPerPixel + 7) / 8;
@@ -93,9 +94,9 @@ namespace CharacomEx
                     b = orgPixels[(y * (int)width + x) * 4 + 2];
 
                     double gray = r * 0.3 + g * 0.59 + b * 0.1;
-                    orgPixels[(y * (int)width + x) * 4 + 0] = (byte)gray;
-                    orgPixels[(y * (int)width + x) * 4 + 1] = (byte)gray;
-                    orgPixels[(y * (int)width + x) * 4 + 2] = (byte)gray;
+                    outPixels[(y * (int)width + x) * 4 + 0] = (byte)gray;
+                    outPixels[(y * (int)width + x) * 4 + 1] = (byte)gray;
+                    outPixels[(y * (int)width + x) * 4 + 2] = (byte)gray;
 
                 }
             }
@@ -107,7 +108,7 @@ namespace CharacomEx
             {
                 for (int x = 0; x < width; x++)
                 {
-                    hist[orgPixels[(y * width + x) * 4 + 1]]++;
+                    hist[outPixels[(y * width + x) * 4 + 1]]++;
                 }
             }
 
@@ -147,22 +148,25 @@ namespace CharacomEx
             }
 
             // tで2値化
+            System.Diagnostics.Debug.WriteLine($"t = {t} Threshold = {Threshold} 比較 = {t * (double)(Threshold / 100.0)}");
+            double check = t * (double)(Threshold / 100.0);
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    int d = (int)orgPixels[(y * (int)width + x) * 4 + 0];
-                    if (d > t * (double)((double)Threshold / 100.0)) d = 255;
+                    int d = outPixels[(y * width + x) * 4 + 0];
+                    if (d > check) d = 255;
                     else d = 0;
-                    orgPixels[(y * width + x) * 4 + 0] = (byte)d;
-                    orgPixels[(y * width + x) * 4 + 1] = (byte)d;
-                    orgPixels[(y * width + x) * 4 + 2] = (byte)d;
+                    outPixels[(y * width + x) * 4 + 0] = (byte)d;
+                    outPixels[(y * width + x) * 4 + 1] = (byte)d;
+                    outPixels[(y * width + x) * 4 + 2] = (byte)d;
+                    outPixels[(y * width + x) * 4 + 3] = (byte)255;
                 }
             }
-
+            
             //BitmapSourceに再変換
-            BitmapSource outBmp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Pbgra32, null, orgPixels, stride);
-            return (outBmp);
+            BitmapSource outBmp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Pbgra32, null, outPixels, stride);
+            return outBmp;
         }
 
         // ノイズ除去
@@ -471,6 +475,57 @@ namespace CharacomEx
             outBmp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Pbgra32, null, orgPixels1, stride);
 
             return (outBmp);
+        }
+
+        //現画像から２値化画像をもとに抽出(全範囲)
+        public BitmapSource ExtractionProc2(BitmapSource Src, BitmapSource twoSrc)
+        {
+            //BitmapをPbrga32に変換する
+            FormatConvertedBitmap s_bmp1 = new FormatConvertedBitmap(Src, PixelFormats.Pbgra32, null, 0);           //原画像
+            FormatConvertedBitmap s_bmp2 = new FormatConvertedBitmap(twoSrc, PixelFormats.Pbgra32, null, 0);        //2値画像
+            //FormatConvertedBitmap s_bmp3 = new FormatConvertedBitmap();
+
+            //画像サイズの配列を作る
+            int width = s_bmp1.PixelWidth;
+            int height = s_bmp1.PixelHeight;
+            byte[] orgPixels1 = new byte[width * height * 4];
+            byte[] orgPixels2 = new byte[width * height * 4];
+            byte[] orgPixels3 = new byte[width * height * 4];
+
+            //BitmapSourceから配列へコピー
+            int stride = (width * s_bmp1.Format.BitsPerPixel + 7) / 8;
+            s_bmp1.CopyPixels(orgPixels1, stride, 0);
+            s_bmp2.CopyPixels(orgPixels2, stride, 0);
+            
+            int base_index;
+            System.Diagnostics.Debug.WriteLine($"作成さいます。{width}x{height}");
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    base_index = (y * (int)width + x) * 4;
+                    if (orgPixels2[base_index + 0] != 0 || orgPixels2[base_index + 1] != 0 || orgPixels2[base_index + 2] != 0)
+                    {
+                        orgPixels3[(y * (int)width + x) * 4 + 0] = 255;
+                        orgPixels3[(y * (int)width + x) * 4 + 1] = 255;
+                        orgPixels3[(y * (int)width + x) * 4 + 2] = 255;
+                        orgPixels3[(y * (int)width + x) * 4 + 3] = 255;
+                    }
+                    else
+                    {
+                        orgPixels3[(y * (int)width + x) * 4 + 0] = orgPixels2[(y * (int)width + x) * 4 + 0];
+                        orgPixels3[(y * (int)width + x) * 4 + 1] = orgPixels2[(y * (int)width + x) * 4 + 1];
+                        orgPixels3[(y * (int)width + x) * 4 + 2] = orgPixels2[(y * (int)width + x) * 4 + 2];
+                        orgPixels3[(y * (int)width + x) * 4 + 3] = orgPixels2[(y * (int)width + x) * 4 + 3];
+                    }
+
+
+                }
+            }
+            BitmapSource outBmp;
+            outBmp = BitmapSource.Create(width, height, 96, 96, PixelFormats.Pbgra32, null, orgPixels3, stride);
+
+            return outBmp;
         }
 
         //陰影除去プロセス

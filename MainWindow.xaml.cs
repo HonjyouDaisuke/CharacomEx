@@ -144,7 +144,7 @@ namespace CharacomEx
             string strCount;
 
             num = 0;
-            foreach(NotificationClass n in _notifications)
+            foreach (NotificationClass n in _notifications)
             {
                 if (n.IsOpened == false) num++;
             }
@@ -169,11 +169,11 @@ namespace CharacomEx
                 foreach (NotificationClass n in _notifications)
                 {
                     Console.WriteLine($"ID=={n.Id};Title={n.Title}");
-                    if(n.Id != "")
+                    if (n.Id != "")
                     {
                         if (max < int.Parse(n.Id)) max = int.Parse(n.Id);
                     }
-                    
+
                 }
             }
             Console.WriteLine($"MaxID=={max};");
@@ -226,7 +226,7 @@ namespace CharacomEx
 
             //サーバーから受け取った文字列を分割
             var list = new List<string>();
-            
+
             list.AddRange(str.Split('|'));
             foreach (string tmp in list)
             {
@@ -336,7 +336,7 @@ namespace CharacomEx
                 }
             }
         }
-
+        
         /// <summary>
         /// MenuItemOpenMeainImage_Click
         /// 資料画像を開く（メニューから）
@@ -348,7 +348,7 @@ namespace CharacomEx
         {
             // ダイアログのインスタンスを生成
             var dialog = new OpenFileDialog();
-            if(Properties.Settings.Default.OpenDir != "")
+            if (Properties.Settings.Default.OpenDir != "")
             {
                 dialog.InitialDirectory = Properties.Settings.Default.OpenDir;
             }
@@ -397,6 +397,11 @@ namespace CharacomEx
                             System.Diagnostics.Debug.WriteLine("   " + cc.CharaImageTitle);
                         }
                     }
+
+                    //2022.06.08 D.Honjyou
+                    //新しいメインタブを作成したら、拡大縮小スケールを１００％に戻す
+                    SliderScale.Value = 100;
+                    Magnification.Header = "100%";
                 }
                 catch (Exception ex)
                 {
@@ -405,7 +410,7 @@ namespace CharacomEx
             }
         }
 
- 
+
 
         /// <summary>
         /// 2021.07.26 D.Honjyou
@@ -486,7 +491,7 @@ namespace CharacomEx
             string sRet;
 
             sRet = CharaName.Text;
-            if(sRet == "")
+            if (sRet == "")
             {
                 sRet = "無題";
             }
@@ -527,12 +532,15 @@ namespace CharacomEx
             Image img = _project.MainImages[MainImageIndex].MainImage;
 
             img.Stretch = Stretch.Fill;
-            
+
 
             MainTabItemUserControl mtc = new MainTabItemUserControl();
 
             mtc.Name = "MainTabItem";
-            mtc.MainImage = img;
+            mtc.InImage1 = img;
+            mtc.InImage2 = img;
+            mtc.InitImages();
+            //System.Diagnostics.Debug.WriteLine($"image = {mtc.docImages.MainImage1.Width}x{mtc.docImages.MainImage1.Height}");
             iTabItem.Content = mtc;
 
             //2021.08.22 メインタブの画像に切り出し矩形を作成 再描画変更
@@ -548,7 +556,7 @@ namespace CharacomEx
         }
 
 
-        
+
         /// <summary>
         /// 2021.07.25 D.Honjyou
         /// メインイメージタブを作成する
@@ -617,7 +625,7 @@ namespace CharacomEx
         private void CharaListSingleSelect(object sender, MouseButtonEventArgs e)
         {
             int tIndex;
-            
+
             tIndex = CharaImages.SelectedIndex;
             if (tIndex < 0) return;
             CharaImageClass cic = (CharaImageClass)_project.MainImages[MainImageIndex].CharaImages[tIndex];
@@ -640,7 +648,7 @@ namespace CharacomEx
             int tIndex;
             string sHeader;
             Image img = new Image();
-            
+
             //選択中の切り出し矩形番号を取得
             tIndex = CharaImages.SelectedIndex;
 
@@ -709,7 +717,7 @@ namespace CharacomEx
 
             int selectwdIndex = ((TabControl)sender).SelectedIndex;
             string tabName = ((TabItem)mainTab.SelectedItem).Header.ToString();
-            
+
             System.Diagnostics.Debug.WriteLine("tabName = " + tabName);
 
             MainOrCharaClass mc = new MainOrCharaClass();
@@ -719,21 +727,29 @@ namespace CharacomEx
             {
                 if (mc.MainOrChara == 1)
                 {
+                    //メイン画像の場合
                     System.Diagnostics.Debug.WriteLine("MainTab -- " + mc.Name + ": mainIndex = " + mc.MainIndex);
                     //切り出しパネルのバインディングを変更
                     CharaImages.ItemsSource = _project.MainImages[mc.MainIndex].CharaImages;
                     MainImageIndex = mc.MainIndex;
-
+                    //2022.06.08 D.Honjyou
+                    //拡大率を取得してスライダーを変更
+                    TabItem ti = (TabItem)mainTab.Items[getTabIndexFromName(_project.MainImages[MainImageIndex].MainImageName)];
+                    MainTabItemUserControl mt = (MainTabItemUserControl)ti.Content;
+                    System.Diagnostics.Debug.WriteLine($"拡大率：{mt.GetRaito()}");
+                    SliderScale.Value = (int)(mt.GetRaito() * 100.0);
+                    Magnification.Header = ((int)(mt.GetRaito() * 100.0)).ToString() + "%";
                 }
                 else
                 {
+                    //切り出し画像の場合
                     System.Diagnostics.Debug.WriteLine("CharaTab -- " + mc.Name + ": mainIndex = " + mc.MainIndex + ": charaIndex = " + mc.CharaIndex);
 
                     _charaImageIndex = mc.CharaIndex;
                     //切り出しパネルのバインディングを変更
                     CharaImages.ItemsSource = _project.MainImages[mc.MainIndex].CharaImages;
                     MainImageIndex = mc.MainIndex;
-                    
+
                 }
 
             }
@@ -891,7 +907,7 @@ namespace CharacomEx
                 image.StreamSource = ms;
                 image.EndInit();
                 image.Freeze();
-                
+
                 return image;
             }
         }
@@ -1026,7 +1042,7 @@ namespace CharacomEx
 
             //path += @"\" + Project.ProjectTitle;
             var dlg = new MSAPI::Dialogs.CommonOpenFileDialog();
-            
+
 
             // フォルダ選択ダイアログ（falseにするとファイル選択ダイアログ）
             dlg.IsFolderPicker = true;
@@ -1108,7 +1124,7 @@ namespace CharacomEx
             MsgBoxShow("JPEGファイルに書き出しました。");
         }
 
-       
+
         /// <summary>
         /// 2021.08.16 D.Honjyou 
         /// タブを閉じるボタンをクリックした時の処理
@@ -1152,7 +1168,7 @@ namespace CharacomEx
                                 mtc.Name = "MainTabItem";
                                 //矩形の再描画
                                 mtc.RedrawRectangle();
-                                
+
                             }
 
                         }
@@ -1178,7 +1194,7 @@ namespace CharacomEx
         private void GridLineCheck_Changed(object sender, RoutedEventArgs e)
         {
             if (mainTab == null) return;
-            
+
             foreach (TabItem t in mainTab.Items)
             {
                 MainOrCharaClass mc = checkTabName(t.Header.ToString());
@@ -1206,8 +1222,8 @@ namespace CharacomEx
             if (this.SaveSizeXL != null) this.SaveSizeXL.IsChecked = false;
 
             //選択されたものをチェックする
-            if(control != null) control.IsChecked = true;
-            if (control != null) System.Diagnostics.Debug.WriteLine( $"Name={control.Name} ; Header = {control.Header} ; Checked = {control.IsChecked}");
+            if (control != null) control.IsChecked = true;
+            if (control != null) System.Diagnostics.Debug.WriteLine($"Name={control.Name} ; Header = {control.Header} ; Checked = {control.IsChecked}");
 
         }
 
@@ -1304,7 +1320,7 @@ namespace CharacomEx
             }
             wc.Dispose();
 
-            
+
         }
         #endregion
 
@@ -1361,7 +1377,7 @@ namespace CharacomEx
             //選択中の切り出し矩形番号を取得
             tIndex = CharaImages.SelectedIndex;
 
-            if(tIndex < 0)
+            if (tIndex < 0)
             {
                 System.Diagnostics.Debug.WriteLine("矩形が選択されていません。キャンセルします。");
 
@@ -1369,7 +1385,7 @@ namespace CharacomEx
             }
             sHeader = _project.MainImages[MainImageIndex].CharaImages[tIndex].CharaImageName;
             _project.MainImages[MainImageIndex].CharaImages.RemoveAt(tIndex);
-                
+
             //メイン画像の矩形を一度クリアする
             foreach (TabItem t in mainTab.Items)
             {
@@ -1391,19 +1407,19 @@ namespace CharacomEx
                 }
             }
             //タブの中で、削除した矩形を開いているタブがあれば削除する
-            if(getTabIndexFromName(sHeader) > -1)
+            if (getTabIndexFromName(sHeader) > -1)
             {
                 System.Diagnostics.Debug.WriteLine($"sHeader = {sHeader} : index = {getTabIndexFromName(sHeader)}");
                 mainTab.Items.RemoveAt(getTabIndexFromName(sHeader));
             }
-             
+
             //mainTab.Items.RemoveAt(mainTab.SelectedIndex);
         }
 
         private void SliderScale_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (mainTab == null) return;
-            if(mainTab.Items.Count < 1)
+            if (mainTab.Items.Count < 1)
             {
                 return;
             }
@@ -1466,6 +1482,92 @@ namespace CharacomEx
                         {
                             MainTabItemUserControl mtc = (MainTabItemUserControl)cc;
                             mtc.RotateImage(1);
+
+                        }
+
+                    }
+                }
+            }
+        }
+
+        private void ReplaceButton_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            ReplaceWindow rw = new ReplaceWindow();
+
+            rw.ShowDialog();
+
+            if (rw.IsCancel != true)
+            {
+                ReplaceCharaName(rw.Search, rw.Replace);
+            }
+        }
+
+        
+        private void ReplaceCharaName(string Search, string Replace)
+        {
+            MessageBoxResult mdr;
+            mdr = MessageBox.Show($"切り出し矩形の名前「{Search}」を「{Replace}」に変更します。\nよろしいですか？", "確認", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+            int count;
+
+            count = 0;
+            if(mdr == MessageBoxResult.OK)
+            {
+                foreach (MainImageClass mm in _project.MainImages)
+                {
+                    foreach (CharaImageClass cc in mm.CharaImages)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"--チェック{cc.CharaImageTitle}←{Search}... {cc.CharaImageTitle.IndexOf(Search)}" );
+                        if(cc.CharaImageTitle.IndexOf(Search) >= 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"見つかりました[{Search}]→[{Replace}]");
+                            cc.CharaImageTitle = cc.CharaImageTitle.Replace(Search, Replace);
+                            cc.CharaImageName = cc.CharaImageName.Replace(Search, Replace);
+                            cc.OnPropertyChanged(cc.CharaImageTitle);
+                            count++;
+                        }
+                    }
+                }
+            }
+            MessageBox.Show($"{count}個の名前を変更しました。", "Characom Imager Ex", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void SliderT_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (mainTab == null) return;
+            if (mainTab.Items.Count < 1) return;
+            //メイン画像を探してプレビューを作る
+            foreach (TabItem t in mainTab.Items)
+            {
+                if (t.Header.ToString() == _project.MainImages[MainImageIndex].MainImageName)
+                {
+                    foreach (UserControl cc in t.FindChildren<UserControl>())
+                    {
+                        if (cc.Name == "MainTabItem")
+                        {
+                            MainTabItemUserControl mtc = (MainTabItemUserControl)cc;
+                            mtc.MakePreviewImage();
+
+                        }
+
+                    }
+                }
+            }
+            System.Diagnostics.Debug.WriteLine($"閾値が変更されました{SliderT.Value}");
+            
+        }
+
+        private void PreviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (TabItem t in mainTab.Items)
+            {
+                if (t.Header.ToString() == _project.MainImages[MainImageIndex].MainImageName)
+                {
+                    foreach (UserControl cc in t.FindChildren<UserControl>())
+                    {
+                        if (cc.Name == "MainTabItem")
+                        {
+                            MainTabItemUserControl mtc = (MainTabItemUserControl)cc;
+                            mtc.ViewChange();
 
                         }
 

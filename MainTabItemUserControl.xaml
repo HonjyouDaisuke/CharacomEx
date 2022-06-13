@@ -6,8 +6,14 @@
              xmlns:local="clr-namespace:CharacomEx"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
+    <UserControl.DataContext>
+        <local:DocImages />
+    </UserControl.DataContext>
     <Grid>
-        <ScrollViewer Name="scrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Name="scrollViewer" 
+                      HorizontalScrollBarVisibility="Auto" 
+                      VerticalScrollBarVisibility="Auto"
+                      PanningMode="Both" ScrollChanged="scrollViewer_ScrollChanged">
             <local:CustomInkCanvas x:Name="inkCanvas"  
                                    Cursor="Pen" 
                                    ForceCursor="True"
@@ -19,12 +25,21 @@
                 <local:CustomInkCanvas.LayoutTransform>
                             <RotateTransform x:Name="rotateTransform" />
                 </local:CustomInkCanvas.LayoutTransform>
-                <Image x:Name="ImageDoc1" Stretch="Fill" 
-                       Source="{Binding MainImage}" 
+                <!--
+                <Image x:Name="ImageDoc2" Stretch="Fill" Visibility="Visible"
+                       Source="{Binding Path=MainImage2.Source}" 
                        Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelWidth}" 
                        Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelHeight}" SizeChanged="ImageDoc1_SizeChanged">
-                    
+
                 </Image>
+                -->
+                <Image x:Name="ImageDoc1" Stretch="Fill" Visibility="Visible"
+                       Source="{Binding Path=MainImage1.Source}" 
+                       Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelWidth}" 
+                       Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.PixelHeight}" SizeChanged="ImageDoc1_SizeChanged">
+
+                </Image>
+
             </local:CustomInkCanvas>
         </ScrollViewer>
     </Grid>

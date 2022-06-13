@@ -16,15 +16,38 @@ using System.Windows.Shapes;
 
 namespace CharacomEx
 {
+    public class DocImages
+    {
+        public Image MainImage1 { get; set; }
+        public Image MainImage2 { get; set; }
+
+        
+    }
     /// <summary>
     /// MainTabItemUserControl.xaml の相互作用ロジック
     /// </summary>
     public partial class MainTabItemUserControl : UserControl
     {
-        private Image _mainImage;
-        public Image MainImage { get => _mainImage; set => _mainImage = value; }
+        private Image _inImage1;
+        private Image _inImage2; //プレビュー用の画像
+        public Image InImage1 { get => _inImage1; set => _inImage1 = value; }
+        public Image InImage2 { get => _inImage2; set => _inImage2 = value; }
+        public DocImages docImages = new DocImages();
+
         private ImageEffect imgEffect = new ImageEffect();
         private double raito = 1.0;
+        
+        
+
+        public double GetRaito()
+        {
+            return raito;
+        }
+
+        public void SetRaito(double value)
+        {
+            raito = value;
+        }
 
         public MainTabItemUserControl()
         {
@@ -33,32 +56,67 @@ namespace CharacomEx
 
         public void ClearRectView()
         {
-
             for (int i = 0; i < inkCanvas.Children.Count; i++)
             {
-                if (inkCanvas.Children[i].GetType().ToString() == "System.Windows.Shapes.Line")
+                System.Diagnostics.Debug.WriteLine($"GetType = {inkCanvas.Children[i].GetType()}");
+                if (inkCanvas.Children[i].GetType().ToString() == "System.Windows.Shapes.Path")
                 {
                     inkCanvas.Children.RemoveAt(i);
                     i--;
                 }
             }
 
-
             //inkCanvas.Children.GetType
             //inkCanvas.Children.Clear();
         }
 
+        public void InitImages()
+        {
+            docImages.MainImage1 = InImage1;
+            docImages.MainImage2 = InImage2;
+
+        }
+
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            this.DataContext = new { MainImage = MainImage.Source };
+            
+            //docImages.MainImage1 = InImage1;
+            //docImages.MainImage2 = InImage2;
+            //this.DataContext = docImages;
+            //ImageDoc2.DataContext = new { MainImage2 = MainImage2.Source };
+            //this.DataContext = new { MainImage1 = MainImage.Source };
+            this.DataContext = docImages;
         }
+
+        public void MakePreviewImage()
+        {
+            var Oya = (MainWindow)Application.Current.MainWindow;
+            /**
+            // 元になる画像を画面から読み込む
+            BitmapSource bmp;
+            bmp = imgEffect.CopyBitmap((BitmapSource)docImages.MainImage1.Source);
+            // 原画像を２値化する
+            System.Diagnostics.Debug.WriteLine($"pre------閾値：{(int)Oya.SliderT.Value}");
+            BitmapSource bmp2 = imgEffect.TwoColorProc(bmp, (int)Oya.SliderT.Value);
+
+            System.Diagnostics.Debug.WriteLine($"pre<---------- width = {bmp.PixelWidth} , actual= {bmp.PixelHeight}");
+            docImages.MainImage2.Source = bmp2;
+            bmp = imgEffect.CopyBitmap((BitmapSource)docImages.MainImage1.Source);
+            docImages.MainImage1 = InImage1;
+            
+            //docImages.MainImage2.Source = imgEffect.ExtractionProc2(bmp, bmp2);
+
+            **/
+
+        }
+
 
         private void inkCanvas_StrokeCollected(object sender, InkCanvasStrokeCollectedEventArgs e)
         {
             var Oya = (MainWindow)Application.Current.MainWindow;
 
             // 元になる画像を画面から読み込む
-            BitmapSource bmp = (BitmapSource)MainImage.Source;
+            BitmapSource bmp = (BitmapSource)docImages.MainImage1.Source;
             // 原画像を２値化する
             System.Diagnostics.Debug.WriteLine($"------閾値：{(int)Oya.SliderT.Value}");
             BitmapSource bmp2 = imgEffect.TwoColorProc(bmp, (int)Oya.SliderT.Value);
@@ -66,7 +124,7 @@ namespace CharacomEx
             System.Diagnostics.Debug.WriteLine($"<---------- width = {bmp.PixelWidth} , actual= {bmp.PixelHeight}");
             //var image = new RenderTargetBitmap((int)_project.MainImages[MainImageIndex].MainImage.ActualWidth, (int)_project.MainImages[MainImageIndex].MainImage.ActualHeight, 96, 96, PixelFormats.Pbgra32);
             var image = new RenderTargetBitmap(bmp.PixelWidth, bmp.PixelHeight, 96, 96, PixelFormats.Pbgra32);
-            image.Render(MainImage);
+            image.Render(docImages.MainImage1);
 
             Point min = new Point(9999.0, 9999.0);
             Point max = new Point(0.0, 0.0);
@@ -290,7 +348,7 @@ namespace CharacomEx
             rg.Rect = rect;
 
             Path p = new Path();
-            p.Stroke = Brushes.Red;
+            p.Stroke = Brushes.Blue;
             p.StrokeThickness = thin;
             p.Data = rg;
 
@@ -338,24 +396,10 @@ namespace CharacomEx
             **/
         }
 
-        void ViewCenter(double center_x, double center_y)
-        {
-            double sv_width_2 = scrollViewer.ActualWidth / 2;
-            double sv_height_2 = scrollViewer.ActualHeight / 2;
-            double offset_x = center_x - sv_width_2;
-            double offset_y = center_y - sv_height_2;
-            if (offset_x < 0) offset_x = 0;
-            else if ((inkCanvas.ActualWidth - offset_x) < sv_width_2)
-                offset_x = inkCanvas.ActualWidth - sv_width_2;
-            if (offset_y < 0) offset_y = 0;
-            else if ((inkCanvas.ActualHeight - offset_y) < sv_height_2)
-                offset_y = inkCanvas.ActualHeight - sv_height_2;
-            scrollViewer.ScrollToHorizontalOffset(offset_x);
-            scrollViewer.ScrollToVerticalOffset(offset_y);
-        }
-
         public void inkCanvas_ScaleChange(int s)
         {
+            double b_raito = raito;
+
             raito = (double)s * 0.01;
             Matrix m0 = new Matrix();
             //canvasサイズの変更 <=== *=raitoだったら、永遠に拡大し続けてしまう。。。。
@@ -364,9 +408,8 @@ namespace CharacomEx
                 inkCanvas.Height = ImageDoc1.Height * raito;
                 inkCanvas.Width = ImageDoc1.Width * raito;
             }
-            System.Diagnostics.Debug.WriteLine($" canvas = ({inkCanvas.Width},{inkCanvas.Height}) ImageDoc1 = ({ImageDoc1.Width},{ImageDoc1.Height}) ratio = {raito} s = {s}");
-            System.Diagnostics.Debug.WriteLine($"1 HOffset = {scrollViewer.HorizontalOffset} :: vOffset = {scrollViewer.VerticalOffset}");
-            System.Diagnostics.Debug.WriteLine($"s viewW = {scrollViewer.ViewportWidth} :: view = {scrollViewer.ViewportHeight}");
+
+            //System.Diagnostics.Debug.WriteLine($"s xOffset = {ox} :: yOffset = {oy}");
             //センターの算出
             double cx, cy;
             cx = scrollViewer.HorizontalOffset + scrollViewer.ViewportWidth / 2.0;
@@ -374,11 +417,11 @@ namespace CharacomEx
             //ViewCenter(cx, cy);
             
             //canvasの拡大縮小
-            //m0.Scale(raito, raito);
-            m0.ScaleAt(raito, raito, cx, cy);
+            m0.Scale(raito, raito);
+            //m0.ScaleAtPrepend(raito, raito, cx, cy);
             matrixTransform.Matrix = m0;
 
-
+            
             // scrollViewerのスクロールバーの位置をマウス位置を中心とする。
             //Point mousePoint = e.GetPosition(scrollViewer);
             //Double x_barOffset = scrollViewer.HorizontalOffset * raito;
@@ -389,8 +432,11 @@ namespace CharacomEx
             //System.Diagnostics.Debug.WriteLine($"- x_barOffset = {x_barOffset} :: y_barOffset = {y_barOffset}");
             var Oya = (MainWindow)Application.Current.MainWindow;
             Oya.SetMagnification(raito);
-            System.Diagnostics.Debug.WriteLine($"e viewW = {scrollViewer.ViewportWidth} :: view = {scrollViewer.ViewportHeight}");
-            System.Diagnostics.Debug.WriteLine($"2 HOffset = {scrollViewer.HorizontalOffset} :: vOffset = {scrollViewer.VerticalOffset}");
+
+            scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset * raito/b_raito); 
+            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset * raito/b_raito);
+            System.Diagnostics.Debug.WriteLine($"raito = {raito}");
+            //System.Diagnostics.Debug.WriteLine($"Z xOffset = {scrollViewer.HorizontalOffset} :: yOffset = {scrollViewer.VerticalOffset}");
 
         }
         /// <summary>
@@ -401,6 +447,7 @@ namespace CharacomEx
         /// <param name="e"></param>
         private void inkCanvas_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
+            double b_raito = raito;
             if((Keyboard.Modifiers & ModifierKeys.Control) <= 0)
             {
                 return;
@@ -452,7 +499,10 @@ namespace CharacomEx
             //scrollViewer.ScrollToVerticalOffset(y_barOffset);
             var Oya = (MainWindow)Application.Current.MainWindow;
             Oya.SetMagnification(raito);
-            
+
+            scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset * raito / b_raito);
+            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset * raito / b_raito);
+
         }
 
         /// <summary>
@@ -480,8 +530,31 @@ namespace CharacomEx
         }
         private void ImageDoc1_SizeChanged(object sender, SizeChangedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("????????");
             inkCanvas.Height = e.NewSize.Height;
             inkCanvas.Width = e.NewSize.Width;
+        }
+
+        public void ViewChange()
+        {
+            if (ImageDoc1.Visibility == Visibility.Visible)
+            {
+                ImageDoc1.Visibility = Visibility.Collapsed;
+                //ImageDoc2.Visibility = Visibility.Visible;
+                System.Diagnostics.Debug.WriteLine($"裏モード{ImageDoc1.IsVisible}");
+            }
+            else
+            {
+                ImageDoc1.Visibility = Visibility.Visible;
+                //ImageDoc2.Visibility = Visibility.Collapsed;
+                System.Diagnostics.Debug.WriteLine($"正規モード{ImageDoc1.IsVisible}");
+            }
+
+        }
+        private void scrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine($"ScrollChange ({scrollViewer.HorizontalOffset},{scrollViewer.VerticalOffset})");
+           
         }
 
         /// <summary>
