@@ -13,12 +13,13 @@
         <ScrollViewer Name="scrollViewer" 
                       HorizontalScrollBarVisibility="Auto" 
                       VerticalScrollBarVisibility="Auto"
-                      PanningMode="Both" ScrollChanged="scrollViewer_ScrollChanged">
+                      PanningMode="Both" ScrollChanged="scrollViewer_ScrollChanged" MouseWheel="scrollViewer_MouseWheel" PreviewMouseWheel="scrollViewer_PreviewMouseWheel">
             <local:CustomInkCanvas x:Name="inkCanvas"  
                                    Cursor="Pen" 
                                    ForceCursor="True"
                                    StrokeCollected="inkCanvas_StrokeCollected" 
-                                   PreviewMouseWheel="inkCanvas_PreviewMouseWheel">
+                                   PreviewMouseWheel="inkCanvas_PreviewMouseWheel" MouseWheel="inkCanvas_MouseWheel"
+                                   >
                 <local:CustomInkCanvas.RenderTransform>
                     <MatrixTransform x:Name="matrixTransform" />
                 </local:CustomInkCanvas.RenderTransform>

@@ -445,6 +445,11 @@ namespace CharacomEx
                 return;
             }
 
+            Point m = e.GetPosition(scrollViewer);
+            if(m.X > ImageDoc1.Width * raito || m.Y > ImageDoc1.Height * raito)
+            {
+                return;
+            }
             //後続のイベント処理をしない
             e.Handled = true;
             double pre_raito;
@@ -508,8 +513,20 @@ namespace CharacomEx
 
             scrollViewer.ScrollToHorizontalOffset(x_offset);
             scrollViewer.ScrollToVerticalOffset(y_offset);
-            System.Diagnostics.Debug.WriteLine($"raito = {raito}");
 
+            System.Diagnostics.Debug.WriteLine($"raito = {raito}");
+            //System.Diagnostics.Debug.WriteLine($"image {ImageDoc1.Width} inkcanvas {inkCanvas.Width} scroll {scrollViewer.Width}");
+            //System.Diagnostics.Debug.WriteLine($"actual {scrollViewer.ActualWidth} view {scrollViewer.ViewportWidth} extent {scrollViewer.ExtentWidth} scrollable {scrollViewer.ScrollableWidth} min {scrollViewer.MinWidth}");
+            //2022.06.22 D.Honjyou
+            //画面よりも縮小した場合はスクロールバーを０に移動
+            if(ImageDoc1.Width * raito < scrollViewer.ViewportWidth)
+            {
+                scrollViewer.ScrollToHorizontalOffset(0);
+            }
+            if(ImageDoc1.Height * raito < scrollViewer.ViewportHeight)
+            {
+                scrollViewer.ScrollToVerticalOffset(0);
+            }
         }
 
         /// <summary>
@@ -579,6 +596,24 @@ namespace CharacomEx
             //inkCanvas.Height = w;
             //inkCanvas.Width = h;
             System.Diagnostics.Debug.WriteLine($"回転後のサイズ{inkCanvas.Width},{inkCanvas.Height}-{ImageDoc1.ActualWidth},{ImageDoc1.ActualHeight}");
+        }
+
+        private void inkCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("MouseWheel");
+        }
+
+        private void scrollViewer_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("MouseWheel2");
+        }
+
+        private void scrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            Point m = e.GetPosition(scrollViewer);
+            System.Diagnostics.Debug.WriteLine("MouseWheel3");
+            System.Diagnostics.Debug.WriteLine($"mouse {m.X},{m.Y} canvas {ImageDoc1.Width * raito},{ImageDoc1.Height * raito}");
+
         }
     }
 }

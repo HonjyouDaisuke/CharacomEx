@@ -634,7 +634,9 @@ namespace CharacomEx
             MainTabItemUserControl mtic = (MainTabItemUserControl)ti.Content;
             mtic.RedrawRectangle();
             mtic.DrawTargetRectangle(cic.CharaRect);
-            mtic.SetCentering(cic.CharaRect);
+            //2022.06.22 D.Honjyou
+            //三崎さん（奥様）からの依頼により中心への移動は中止
+            //mtic.SetCentering(cic.CharaRect);
         }
 
         /// <summary>
