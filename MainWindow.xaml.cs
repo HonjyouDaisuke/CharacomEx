@@ -350,7 +350,17 @@ namespace CharacomEx
             var dialog = new OpenFileDialog();
             if (Properties.Settings.Default.OpenDir != "")
             {
-                dialog.InitialDirectory = Properties.Settings.Default.OpenDir;
+                // 2022.07.25 D.Honjyou
+                // 初期ディレクトリがないときはマイドキュメントを参照する
+                if (Directory.Exists(Properties.Settings.Default.OpenDir))
+                {
+                    dialog.InitialDirectory = Properties.Settings.Default.OpenDir;
+                }
+                else
+                {
+                    dialog.InitialDirectory = System.Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                }
+                
             }
             // ファイルの種類を設定
             //dialog.Filter = "テキストファイル (*.txt)|*.txt|全てのファイル (*.*)|*.*";
@@ -369,6 +379,7 @@ namespace CharacomEx
                     //ファイル名からディレクトリを保存
                     Properties.Settings.Default.OpenDir = System.IO.Path.GetDirectoryName(dialog.FileName);
                     System.Diagnostics.Debug.WriteLine($"Properties.Settings.Default.OpenDir = {Properties.Settings.Default.OpenDir}");
+                    Properties.Settings.Default.Save();
 
                     //2021.07.24 D.Honjyou
                     // Projectにメイン画像を追加
@@ -1054,7 +1065,17 @@ namespace CharacomEx
             // 2022.06.01 初期ディレクトリを保存と開くで分ける
             if (Properties.Settings.Default.SaveDir != "")
             {
-                dlg.InitialDirectory = System.IO.Path.GetDirectoryName(Properties.Settings.Default.SaveDir);
+                // 2022.07.25 D.Honjyou
+                // 初期ディレクトリがないときはマイドキュメントを参照する
+                if (Directory.Exists(System.IO.Path.GetDirectoryName(Properties.Settings.Default.SaveDir)))
+                {
+                    dlg.InitialDirectory = System.IO.Path.GetDirectoryName(Properties.Settings.Default.SaveDir);
+                }
+                else
+                {
+                    dlg.InitialDirectory = System.Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                }
+                
             }
 
 
@@ -1074,7 +1095,11 @@ namespace CharacomEx
             BitmapSource bs;
             FileStream stream;
 
+            //設定ファイルを保存
             Properties.Settings.Default.SaveDir = dlg.FileName;
+            Properties.Settings.Default.Save();
+            System.Diagnostics.Debug.WriteLine($"SaveFolder Saved... {Properties.Settings.Default.SaveDir}");
+
             //イメージをJpegにして保存
             foreach (MainImageClass m in Project.MainImages)
             {

@@ -429,7 +429,16 @@ namespace CharacomEx
             scrollViewer.ScrollToHorizontalOffset(cx * raito / b_raito - scrollViewer.ViewportWidth / 2.0);
             scrollViewer.ScrollToVerticalOffset(cy * raito / b_raito - scrollViewer.ViewportHeight / 2.0);
             System.Diagnostics.Debug.WriteLine($"raito = {raito}");
-            
+            //2022.06.22 D.Honjyou
+            //画面よりも縮小した場合はスクロールバーを０に移動
+            if (ImageDoc1.Width * raito < scrollViewer.ViewportWidth)
+            {
+                scrollViewer.ScrollToHorizontalOffset(0);
+            }
+            if (ImageDoc1.Height * raito < scrollViewer.ViewportHeight)
+            {
+                scrollViewer.ScrollToVerticalOffset(0);
+            }
         }
         /// <summary>
         /// 2022.03.16 D.Honjyou
